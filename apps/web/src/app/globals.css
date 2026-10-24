@@ -47,3 +47,7 @@ footer{padding:28px clamp(20px,5vw,56px);color:var(--dim);border-top:1px solid v
 .text:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px #3b2fd922}
 .or{text-align:center;color:var(--dim);margin:14px 0}
 @media (max-width:640px){.how li{grid-template-columns:1fr;gap:2px}}
+textarea.text{min-height:110px;resize:vertical}
+.proj{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.proj p{margin:4px 0 0;color:#3d4640}
+.link{color:var(--accent);font-weight:600}
