@@ -1,42 +1,57 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, type DragEvent } from 'react';
-import { BundleError, extractBundle, uploadBundle, type Bundle } from '@akox/core';
+import { useCallback, useEffect, useState, type DragEvent } from 'react';
+import { BundleError, extractBundle, type Bundle } from '@akox/core';
 import { getSupabase } from '../../lib/supabase';
-import { supabaseStore } from '../../lib/storage';
+import { DAILY_LIMIT } from '../../lib/limits';
 import { AppBar } from '../../components/AppBar';
 
-type Result = { ok: true; bundle: Bundle; name: string } | { ok: false; message: string };
+type Result = { ok: true; bundle: Bundle; file: File } | { ok: false; message: string };
 
 const mb = (n: number): string => (n / 1024 / 1024).toFixed(2) + ' MB';
 
+async function token(): Promise<string | null> {
+  const res = await getSupabase()?.auth.getSession();
+  return res?.data.session?.access_token ?? null;
+}
+
 export default function UploadPage() {
-  const [uid, setUid] = useState<string | null>(null);
   const [username, setUsername] = useState('');
+  const [signedIn, setSignedIn] = useState(false);
+  const [left, setLeft] = useState(DAILY_LIMIT);
+  const [hasPrev, setHasPrev] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
   const [live, setLive] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     const sb = getSupabase();
     if (!sb) return;
-    void (async () => {
-      const { data } = await sb.auth.getSession();
-      const user = data.session?.user;
-      if (!user) return;
-      const { data: p } = await sb.from('profiles').select('username').eq('id', user.id).maybeSingle();
-      if (p) { setUid(user.id); setUsername(String(p.username)); }
-    })();
+    const { data } = await sb.auth.getSession();
+    const user = data.session?.user;
+    if (!user) return;
+    setSignedIn(true);
+    const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const [{ data: p }, { count }, { data: site }] = await Promise.all([
+      sb.from('profiles').select('username').eq('id', user.id).maybeSingle(),
+      sb.from('publish_log').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).gte('created_at', since),
+      sb.from('portfolio_sites').select('previous_version').eq('owner_id', user.id).maybeSingle(),
+    ]);
+    if (p) setUsername(String(p.username));
+    setLeft(Math.max(0, DAILY_LIMIT - (count ?? 0)));
+    setHasPrev(Boolean(site?.previous_version));
   }, []);
+
+  useEffect(() => { void refresh(); }, [refresh]);
 
   async function read(file: File | undefined) {
     if (!file) return;
     setBusy(true); setLive(false); setError('');
     try {
-      const data = new Uint8Array(await file.arrayBuffer());
-      setResult({ ok: true, bundle: extractBundle(data), name: file.name });
+      const bundle = extractBundle(new Uint8Array(await file.arrayBuffer()));
+      setResult({ ok: true, bundle, file });
     } catch (err) {
       setResult({ ok: false, message: err instanceof BundleError ? err.message : 'Could not read that file. Is it a .zip?' });
     } finally {
@@ -44,27 +59,26 @@ export default function UploadPage() {
     }
   }
 
-  async function publish() {
-    const sb = getSupabase();
-    if (!sb || !uid || !result || !result.ok) return;
+  async function send(path: string, init: RequestInit): Promise<boolean> {
+    const t = await token();
+    if (!t) { setError('Please log in again.'); return false; }
     setBusy(true); setError('');
-    try {
-      const store = supabaseStore(sb);
-      const { data: old } = await sb.from('portfolio_sites').select('version').eq('owner_id', uid).maybeSingle();
-      const version = Date.now().toString(36);
-      await uploadBundle(result.bundle, `${uid}/${version}/`, store);
-      const { error: dbErr } = await sb.from('portfolio_sites').upsert({
-        owner_id: uid, version, file_count: result.bundle.files.length,
-        total_bytes: result.bundle.totalBytes, updated_at: new Date().toISOString(),
-      });
-      if (dbErr) throw new Error(dbErr.message);
-      if (old?.version) await store.deletePrefix(`${uid}/${String(old.version)}/`).catch(() => undefined);
-      setLive(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Publishing failed.');
-    } finally {
-      setBusy(false);
-    }
+    const res = await fetch(path, { ...init, method: 'POST', headers: { ...init.headers, Authorization: `Bearer ${t}` } });
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    setBusy(false);
+    if (!res.ok) { setError(body.error ?? 'Something went wrong.'); return false; }
+    await refresh();
+    return true;
+  }
+
+  async function publish() {
+    if (!result || !result.ok) return;
+    if (await send('/api/publish', { headers: { 'Content-Type': 'application/zip' }, body: result.file })) setLive(true);
+  }
+
+  async function goBack() {
+    if (!window.confirm('Switch your site back to the previous version?')) return;
+    if (await send('/api/rollback', {})) setLive(true);
   }
 
   function onDrop(e: DragEvent<HTMLLabelElement>) {
@@ -77,8 +91,9 @@ export default function UploadPage() {
       <AppBar />
       <main className="narrow">
         <h1 className="small">Upload your site</h1>
-        <p className="lead">Zip your site folder (it needs an index.html at the top) and drop it here. Use relative links like css/style.css.</p>
-        {!uid && <p className="note bad">You need to <Link className="link" href="/login">log in</Link> to publish.</p>}
+        <p className="lead">Your portfolio is one site. Zip the folder (it needs an index.html at the top) and drop it here. You can replace it up to {DAILY_LIMIT} times a day.</p>
+        {!signedIn && <p className="note bad">You need to <Link className="link" href="/login">log in</Link> to publish.</p>}
+        {signedIn && <p className="note">Uploads left today: {left} of {DAILY_LIMIT}</p>}
 
         <label className="drop" htmlFor="zip" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
           {busy ? 'Working...' : 'Drop a .zip here, or click to choose one'}
@@ -89,16 +104,21 @@ export default function UploadPage() {
 
         {result && result.ok && (
           <section className="report">
-            <h2>Looks good: {result.name}</h2>
+            <h2>Looks good: {result.file.name}</h2>
             <p>{result.bundle.files.length} files, {mb(result.bundle.totalBytes)}</p>
             <ul>{result.bundle.files.slice(0, 8).map((f) => <li key={f.path}>{f.path}</li>)}</ul>
-            <button className="btn" disabled={!uid || busy || live} onClick={() => void publish()}>
-              {busy ? 'Publishing...' : live ? 'Published' : 'Publish to ' + (username || 'my address')}
+            <button className="btn" disabled={!signedIn || busy || left === 0} onClick={() => void publish()}>
+              {left === 0 ? 'No uploads left today' : busy ? 'Publishing...' : 'Publish to ' + (username || 'my address')}
             </button>
           </section>
         )}
 
         {error && <p className="note bad" role="alert">{error}</p>}
+
+        {hasPrev && (
+          <p className="note">Made a mistake? <button className="btn ghost" disabled={busy} onClick={() => void goBack()}>Go back to the previous version</button></p>
+        )}
+
         {live && (
           <section className="report">
             <h2>Your site is live</h2>

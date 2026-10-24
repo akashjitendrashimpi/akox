@@ -22,8 +22,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ username: strin
 
   const name = username.toLowerCase();
   const sb = createClient(url, key, { auth: { persistSession: false } });
-  const { data: prof } = await sb.from('profiles').select('id').eq('username', name).maybeSingle();
-  if (!prof) return miss();
+  const { data: prof } = await sb.from('profiles').select('id, suspended').eq('username', name).maybeSingle();
+  if (!prof || prof.suspended) return miss();
   const { data: site } = await sb.from('portfolio_sites').select('version').eq('owner_id', prof.id).maybeSingle();
   if (!site) return miss();
 

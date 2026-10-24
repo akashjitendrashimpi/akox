@@ -22,7 +22,7 @@ export default async function ExplorePage() {
     }
     const ids = [...byOwner.keys()].slice(0, 48);
     if (ids.length > 0) {
-      const { data: profs } = await sb.from('profiles').select('id, username, display_name, bio').in('id', ids);
+      const { data: profs } = await sb.from('profiles').select('id, username, display_name, bio').in('id', ids).eq('suspended', false);
       people = ((profs ?? []) as Person[]).map((p) => ({ ...p, titles: byOwner.get(p.id) ?? [] }));
     }
   }
