@@ -1,0 +1,20 @@
+name = "akox-site-server"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# PLACEHOLDERS: replace with domains you actually own.
+# User portfolios MUST live on a different registrable domain than the AKOX app,
+# otherwise one user's JavaScript can read other users' AKOX login cookies.
+routes = [{ pattern = "*.akox.in/*", zone_name = "akox.in" }]
+
+[vars]
+SITE_DOMAIN = "akox.in"   # where portfolios are served
+APP_ORIGIN = "https://akox.in" # the AKOX app (allowed to iframe previews)
+
+[[r2_buckets]]
+binding = "SITES_BUCKET"
+bucket_name = "akox-sites"
+
+[[kv_namespaces]]
+binding = "SITES_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
