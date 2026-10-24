@@ -90,7 +90,7 @@ export default function DashboardPage() {
               </ul>
               <div className="nav">
                 <Link className="btn" href="/dashboard/edit">Edit my portfolio</Link>
-                <Link className="btn ghost" href="/explore">Explore portfolios</Link>
+                <Link className="btn ghost" href="/upload">Upload my site</Link><Link className="btn ghost" href="/explore">Explore portfolios</Link>
               </div>
             </section>
           </>
