@@ -5,12 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getSupabase } from '../../lib/supabase';
 import { AppBar } from '../../components/AppBar';
-
-interface Me { username: string; name: string; bio: string; projects: number }
+import { DashboardView, type DashboardMe } from '../../components/app/DashboardView';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [me, setMe] = useState<Me | null>(null);
+  const [me, setMe] = useState<DashboardMe | null>(null);
   const [state, setState] = useState<'loading' | 'out' | 'in'>('loading');
   const [copied, setCopied] = useState(false);
 
@@ -23,12 +22,19 @@ export default function DashboardPage() {
       if (!user) { setState('out'); return; }
       const { data: p } = await sb.from('profiles').select('username, display_name, bio').eq('id', user.id).maybeSingle();
       if (!p) { router.replace('/onboarding'); return; }
-      const { count } = await sb.from('projects').select('id', { count: 'exact', head: true }).eq('owner_id', user.id);
+      const { data: list, count } = await sb.from('projects')
+        .select('title, description', { count: 'exact' })
+        .eq('owner_id', user.id)
+        .order('created_at')
+        .limit(3);
+      const items = ((list ?? []) as { title: string; description: string | null }[])
+        .map((r) => ({ title: String(r.title), description: String(r.description ?? '') }));
       setMe({
         username: String(p.username),
         name: String(p.display_name || p.username),
         bio: String(p.bio ?? ''),
-        projects: count ?? 0,
+        projects: count ?? items.length,
+        items,
       });
       setState('in');
     })();
@@ -42,59 +48,30 @@ export default function DashboardPage() {
     });
   }
 
-  const tasks = me ? [
-    { done: true, label: 'Create your account' },
-    { done: true, label: 'Choose your address' },
-    { done: me.bio.trim().length > 0, label: 'Write a short bio' },
-    { done: me.projects > 0, label: 'Add your first project' },
-  ] : [];
-
   return (
     <>
       <AppBar />
-      <main className="narrow">
-        {state === 'loading' && <p className="lead">Loading...</p>}
+      <main className="ap-wrap ap-page">
+        {state === 'loading' && (
+          <div aria-busy="true">
+            <p className="ap-sr" role="status">Loading your dashboard</p>
+            <div className="ap-skel" style={{ height: 56, width: 'min(420px, 100%)', marginBottom: 28 }} />
+            <div className="ap-dash-grid">
+              <div className="ap-skel" style={{ height: 260 }} />
+              <div className="ap-skel" style={{ height: 260 }} />
+            </div>
+          </div>
+        )}
 
         {state === 'out' && (
-          <>
-            <h1 className="small">You are not logged in</h1>
-            <Link className="btn" href="/login">Go to login</Link>
-          </>
+          <div className="ap-narrow">
+            <h1 className="ap-title">You are not logged in</h1>
+            <p className="ap-lead">Log in to see your portfolio.</p>
+            <Link className="ap-btn" href="/login">Go to login</Link>
+          </div>
         )}
 
-        {state === 'in' && me && (
-          <>
-            <h1 className="small">Hi, {me.name}</h1>
-
-            <section className="report">
-              <h2>Your address</h2>
-              <div className="address" style={{ marginTop: 8 }}>
-                <span className="lock" />
-                <span>{me.username}<span className="dim">.akox.in</span></span>
-              </div>
-              <p className="note">It goes live on the internet when we deploy AKOX. For now, your page is on this computer.</p>
-              <div className="nav">
-                <Link className="btn" href={'/u/' + me.username}>Open my page</Link>
-                <button className="btn ghost" onClick={copy}>{copied ? 'Copied' : 'Copy link'}</button>
-              </div>
-            </section>
-
-            <section className="report">
-              <h2>Finish your portfolio</h2>
-              <ul className="checks">
-                {tasks.map((t) => (
-                  <li key={t.label} className={t.done ? 'done' : ''}>
-                    <span>{t.done ? 'Done' : 'To do'}</span> {t.label}
-                  </li>
-                ))}
-              </ul>
-              <div className="nav">
-                <Link className="btn" href="/dashboard/edit">Edit my portfolio</Link>
-                <Link className="btn ghost" href="/upload">Upload my site</Link><Link className="btn ghost" href="/explore">Explore portfolios</Link>
-              </div>
-            </section>
-          </>
-        )}
+        {state === 'in' && me && <DashboardView me={me} copied={copied} onCopy={copy} />}
       </main>
     </>
   );

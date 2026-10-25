@@ -6,6 +6,7 @@ import { BundleError, extractBundle, type Bundle } from '@akox/core';
 import { getSupabase } from '../../lib/supabase';
 import { DAILY_LIMIT } from '../../lib/limits';
 import { AppBar } from '../../components/AppBar';
+import { CheckIcon, SuccessMark } from '../../components/app/Icons';
 
 type Result = { ok: true; bundle: Bundle; file: File } | { ok: false; message: string };
 
@@ -24,6 +25,7 @@ export default function UploadPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
   const [live, setLive] = useState(false);
+  const [over, setOver] = useState(false);
   const [error, setError] = useState('');
 
   const refresh = useCallback(async () => {
@@ -83,49 +85,84 @@ export default function UploadPage() {
 
   function onDrop(e: DragEvent<HTMLLabelElement>) {
     e.preventDefault();
+    setOver(false);
     void read(e.dataTransfer.files[0]);
   }
+
+  // Where the visitor is in the flow: 1 choose a zip, 2 review it, 3 live.
+  const step = live ? 3 : result && result.ok ? 2 : 1;
 
   return (
     <>
       <AppBar />
-      <main className="narrow">
-        <h1 className="small">Upload your site</h1>
-        <p className="lead">Your portfolio is one site. Zip the folder (it needs an index.html at the top) and drop it here. You can replace it up to {DAILY_LIMIT} times a day.</p>
-        {!signedIn && <p className="note bad">You need to <Link className="link" href="/login">log in</Link> to publish.</p>}
-        {signedIn && <p className="note">Uploads left today: {left} of {DAILY_LIMIT}</p>}
+      <main className="ap-wrap ap-page">
+        <div className="ap-narrow">
+          <h1 className="ap-title">Upload your site</h1>
+          <p className="ap-lead">Your portfolio is one site. Zip the folder (it needs an index.html at the top) and drop it here. You can replace it up to {DAILY_LIMIT} times a day.</p>
+          <ol className="ap-stepper" aria-label="Upload progress">
+            {['Choose your zip', 'Review', 'Go live'].map((label, i) => (
+              <li key={label} className={i + 1 < step || step === 3 && i === 2 ? 'is-done' : i + 1 === step ? 'is-now' : ''}
+                aria-current={i + 1 === step ? 'step' : undefined}>
+                <span>{i + 1 < step || (step === 3 && i === 2) ? <CheckIcon size={14} strokeWidth={3.5} /> : i + 1}</span>
+                {label}
+              </li>
+            ))}
+          </ol>
+          {!signedIn && <p className="ap-note bad">You need to <Link className="ap-textlink" href="/login">log in</Link> to publish.</p>}
+          {signedIn && (
+            <div className="ap-meter">
+              <p className="ap-note" style={{ margin: 0 }}>Uploads left today: {left} of {DAILY_LIMIT}</p>
+              <div className="ap-progress" role="progressbar" aria-label="Uploads left today" aria-valuemin={0} aria-valuemax={DAILY_LIMIT} aria-valuenow={left}>
+                <i style={{ width: `${(left / DAILY_LIMIT) * 100}%` }} />
+              </div>
+            </div>
+          )}
 
-        <label className="drop" htmlFor="zip" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
-          {busy ? 'Working...' : 'Drop a .zip here, or click to choose one'}
-          <input id="zip" type="file" accept=".zip,application/zip" onChange={(e) => void read(e.target.files?.[0])} />
-        </label>
+          <label
+            className={`ap-drop${over ? ' is-over' : ''}${busy ? ' is-busy' : ''}`}
+            htmlFor="zip"
+            onDragOver={(e) => e.preventDefault()}
+            onDragEnter={() => setOver(true)}
+            onDragLeave={() => setOver(false)}
+            onDrop={onDrop}
+          >
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 16V4m0 0L7 9m5-5 5 5M4 20h16" />
+            </svg>
+            <span className="ap-drop-main">{busy ? 'Working...' : 'Drop a .zip here, or click to choose one'}</span>
+            <input id="zip" type="file" accept=".zip,application/zip" onChange={(e) => void read(e.target.files?.[0])} />
+          </label>
 
-        {result && !result.ok && <p className="note bad" role="alert">{result.message}</p>}
+          {result && !result.ok && <p className="ap-note bad" role="alert">{result.message}</p>}
 
-        {result && result.ok && (
-          <section className="report">
-            <h2>Looks good: {result.file.name}</h2>
-            <p>{result.bundle.files.length} files, {mb(result.bundle.totalBytes)}</p>
-            <ul>{result.bundle.files.slice(0, 8).map((f) => <li key={f.path}>{f.path}</li>)}</ul>
-            <button className="btn" disabled={!signedIn || busy || left === 0} onClick={() => void publish()}>
-              {left === 0 ? 'No uploads left today' : busy ? 'Publishing...' : 'Publish to ' + (username || 'my address')}
-            </button>
-          </section>
-        )}
+          {result && result.ok && (
+            <section className="ap-panel" style={{ marginTop: 16 }}>
+              <h2 className="ap-h2">Looks good: {result.file.name}</h2>
+              <p className="ap-note" style={{ margin: 0 }}>{result.bundle.files.length} files, {mb(result.bundle.totalBytes)}</p>
+              <ul className="ap-files">
+                {result.bundle.files.slice(0, 8).map((f) => <li key={f.path}>{f.path}</li>)}
+                {result.bundle.files.length > 8 && <li>and {result.bundle.files.length - 8} more</li>}
+              </ul>
+              <button className="ap-btn" aria-busy={busy} disabled={!signedIn || busy || left === 0} onClick={() => void publish()}>
+                {left === 0 ? 'No uploads left today' : busy ? 'Publishing...' : 'Publish to ' + (username || 'my address')}
+              </button>
+            </section>
+          )}
 
-        {error && <p className="note bad" role="alert">{error}</p>}
+          {error && <p className="ap-note bad" role="alert">{error}</p>}
 
-        {hasPrev && (
-          <p className="note">Made a mistake? <button className="btn ghost" disabled={busy} onClick={() => void goBack()}>Go back to the previous version</button></p>
-        )}
+          {hasPrev && (
+            <p className="ap-note" style={{ marginTop: 20 }}>Made a mistake? <button className="ap-btn ap-btn-ghost ap-btn-sm" disabled={busy} onClick={() => void goBack()}>Go back to the previous version</button></p>
+          )}
 
-        {live && (
-          <section className="report">
-            <h2>Your site is live</h2>
-            <p>On this computer it opens at /s/{username}.</p>
-            <a className="btn" href={'/s/' + username + '/'} target="_blank" rel="noopener">Open my site</a>
-          </section>
-        )}
+          {live && (
+            <section className="ap-panel ap-celebrate" style={{ marginTop: 16 }} role="status">
+              <h2 className="ap-h2 ap-live"><SuccessMark />Your site is live</h2>
+              <p className="ap-note">On this computer it opens at /s/{username}.</p>
+              <a className="ap-btn" href={'/s/' + username + '/'} target="_blank" rel="noopener">Open my site</a>
+            </section>
+          )}
+        </div>
       </main>
     </>
   );

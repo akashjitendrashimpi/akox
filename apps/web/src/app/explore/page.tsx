@@ -1,15 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { AppBar } from '../../components/AppBar';
+import { ExploreView, type Person } from '../../components/app/ExploreView';
 
 export const revalidate = 0;
 
-interface Person { id: string; username: string; display_name: string; bio: string }
+type Profile = Omit<Person, 'titles'>;
 
 export default async function ExplorePage() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  let people: (Person & { titles: string[] })[] = [];
+  let people: Person[] = [];
 
   if (url && key) {
     const sb = createClient(url, key, { auth: { persistSession: false } });
@@ -23,27 +24,30 @@ export default async function ExplorePage() {
     const ids = [...byOwner.keys()].slice(0, 48);
     if (ids.length > 0) {
       const { data: profs } = await sb.from('profiles').select('id, username, display_name, bio').in('id', ids).eq('suspended', false);
-      people = ((profs ?? []) as Person[]).map((p) => ({ ...p, titles: byOwner.get(p.id) ?? [] }));
+      const byId = new Map(((profs ?? []) as Profile[]).map((p) => [p.id, p] as const));
+      // Keep the order of the projects query, so the people with the newest work come first.
+      people = ids.flatMap((id) => {
+        const p = byId.get(id);
+        return p ? [{ ...p, display_name: p.display_name ?? '', bio: p.bio ?? '', titles: byOwner.get(id) ?? [] }] : [];
+      });
     }
   }
 
   return (
     <>
       <AppBar />
-      <main className="wide">
-        <h1 className="small">Explore portfolios</h1>
-        <p className="lead">See what other students and freelancers are building.</p>
-        {people.length === 0 && <p className="note">No portfolios here yet. Add a project to yours and you will be the first.</p>}
-        <div className="grid">
-          {people.map((p) => (
-            <Link key={p.id} className="pcard" href={'/u/' + p.username}>
-              <b>{p.display_name || p.username}</b>
-              <span className="dim">{p.username}.akox.in</span>
-              {p.bio && <p className="clamp">{p.bio}</p>}
-              <span className="tag">{p.titles.length} {p.titles.length === 1 ? 'project' : 'projects'}: {p.titles[0]}</span>
-            </Link>
-          ))}
-        </div>
+      <main className="ap-wrap ap-page">
+        <h1 className="ap-title">Explore portfolios</h1>
+        <p className="ap-lead">See what other students and freelancers are building.</p>
+
+        {people.length === 0 ? (
+          <div className="ap-panel ap-empty">
+            <p className="ap-note" style={{ marginTop: 0 }}>No portfolios here yet. Add a project to yours and you will be the first.</p>
+            <Link className="ap-btn" href="/dashboard/edit">Add a project</Link>
+          </div>
+        ) : (
+          <ExploreView people={people} />
+        )}
       </main>
     </>
   );

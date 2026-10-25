@@ -1,11 +1,6 @@
 import type { ReactNode } from 'react';
-import { AuthRedirect } from '../components/AuthRedirect';
 
+/** A template remounts on every navigation, so each page eases in the same way. */
 export default function Template({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <AuthRedirect />
-      {children}
-    </>
-  );
+  return <div className="ap-route">{children}</div>;
 }

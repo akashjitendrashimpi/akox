@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { getSupabase } from '../../lib/supabase';
 import { signInWithGoogle } from '../../lib/auth';
+import { AuthFrame } from '../../components/app/AuthFrame';
+import { PasswordInput } from '../../components/app/Fields';
 
 const ready = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
@@ -42,31 +44,24 @@ export default function LoginPage() {
   }
 
   return (
-    <>
-      <header className="bar">
-        <Link className="logo" href="/">akox</Link>
-      </header>
-      <main className="narrow">
-        <h1 className="small">Welcome back</h1>
-        <p className="lead">Log in to manage your portfolio.</p>
-        {!ready && <p className="note bad" role="alert">Login is not connected yet. Check your .env.local file.</p>}
+    <AuthFrame title="Welcome back" lead="Log in to manage your portfolio."
+      corner={<>New here? <Link className="ap-textlink" href="/signup">Create an account</Link></>}>
+      {!ready && <p className="ap-note bad" role="alert">Login is not connected yet. Check your .env.local file.</p>}
 
-        <button type="button" className="btn ghost wide" disabled={!ready} onClick={() => void google()}>Continue with Google</button>
-        <p className="or">or use your email</p>
+      <button type="button" className="ap-btn ap-btn-ghost ap-btn-wide" disabled={!ready} onClick={() => void google()}>Continue with Google</button>
+      <p className="ap-or">or use your email</p>
 
-        <form onSubmit={submit}>
-          <label className="field" htmlFor="email">Email</label>
-          <input id="email" className="text" type="email" required autoComplete="email" value={email}
-            onChange={(e) => setEmail(e.target.value)} />
-          <label className="field" htmlFor="password">Password</label>
-          <input id="password" className="text" type="password" required autoComplete="current-password" value={password}
-            onChange={(e) => setPassword(e.target.value)} />
-          <button className="btn wide" disabled={!ready || busy}>{busy ? 'Please wait...' : 'Log in'}</button>
-        </form>
+      <form onSubmit={submit}>
+        <label className="ap-label" htmlFor="email">Email</label>
+        <input id="email" className="ap-input" type="email" required autoComplete="email" autoFocus value={email}
+          onChange={(e) => setEmail(e.target.value)} />
+        <label className="ap-label" htmlFor="password">Password</label>
+        <PasswordInput id="password" required autoComplete="current-password" value={password}
+          onChange={(e) => setPassword(e.target.value)} />
+        <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy} aria-busy={busy}>{busy ? 'Please wait...' : 'Log in'}</button>
+      </form>
 
-        <p className={msg ? 'note bad' : 'note'} role="status">{msg || ' '}</p>
-        <p className="note">New to AKOX? <Link className="link" href="/signup">Create an account</Link></p>
-      </main>
-    </>
+      <p className={msg ? 'ap-note bad ap-status' : 'ap-note ap-status'} role="status">{msg || ' '}</p>
+    </AuthFrame>
   );
 }
