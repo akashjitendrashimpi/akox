@@ -58,13 +58,13 @@ html:has(.lp) { scroll-behavior: smooth; }
 
 /* Nav */
 .lp-nav { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid transparent; transition: background-color .2s, border-color .2s; }
-.lp-nav.is-scrolled { background: rgba(16, 14, 42, .9); backdrop-filter: blur(12px); border-bottom-color: var(--lp-line); }
+.lp-nav.is-scrolled { background: rgba(16, 14, 42, .9); border-bottom-color: var(--lp-line); }
 .lp-nav-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 72px; }
 .lp-logo { font: 800 1.6rem var(--font-display), system-ui, sans-serif; letter-spacing: -.04em; }
 .lp-nav-links { display: flex; align-items: center; gap: 6px; }
 .lp-link { padding: 10px 14px; color: var(--lp-dim); font-weight: 500; border-radius: 999px; transition: color .15s; }
 .lp-link:hover { color: var(--lp-ink); }
-@media (max-width: 560px) { .lp-hide-sm { display: none; } }
+@media (max-width: 640px) { .lp-hide-sm { display: none; } }
 
 /* Hero */
 .lp-hero { position: relative; padding: clamp(36px, 6vw, 88px) 0 0; overflow: hidden; }
@@ -280,3 +280,8 @@ html:has(.lp) { scroll-behavior: smooth; }
 }
 .lp-ways article { transition: background-color .3s var(--lp-ease); }
 .lp-ways article:hover { background: linear-gradient(180deg, rgba(169, 161, 255, .07), transparent 70%); }
+
+/* Light theme: the original palette */
+:root[data-theme="light"] .lp { --lp-bg: #f4f6f1; --lp-ink: #1c2320; --lp-dim: #3d4640; --lp-mute: #6c7770; --lp-line: #d3dacf; --lp-peri: #3b2fd9; --lp-paper: #fff; --lp-soft: #e7ece3; color: #1c2320; }
+:root[data-theme="light"] .lp-nav.is-scrolled { background: rgba(244, 246, 241, .92); }
+:root[data-theme="light"] .lp-textlink:hover { color: #3b2fd9; }

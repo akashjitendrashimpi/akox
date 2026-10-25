@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import { AppBar } from '../../../components/AppBar';
+import { BackLink } from '../../../components/BackLink';
 import { ReportButton } from '../../../components/ReportButton';
 
 export const revalidate = 0;
@@ -37,6 +38,7 @@ export default async function PublicPortfolio({ params }: { params: Promise<{ us
     <>
       <AppBar />
       <main className="ap-site-stage">
+        <div className="ap-site-back"><BackLink fallback="/explore" /></div>
         <article className="ap-paper ap-site">
           <div className="ap-addr"><span className="ap-lock" /><span>{p.username}<span className="ap-url-dim">.akox.in</span></span></div>
           <h1 className="ap-site-name">{p.display_name || p.username}</h1>

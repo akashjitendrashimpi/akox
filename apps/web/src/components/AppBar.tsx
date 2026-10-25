@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getSupabase } from '../lib/supabase';
+import { GearIcon } from './app/Icons';
+import { MobileMenu } from './MobileMenu';
 
+/** Top bar for public pages (Explore, public portfolios). The signed-in app lives in the dashboard shell. */
 export function AppBar() {
-  const router = useRouter();
   const pathname = usePathname() ?? '';
   const [loggedIn, setLoggedIn] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -22,29 +24,43 @@ export function AppBar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  async function logOut() {
-    await getSupabase()?.auth.signOut();
-    setLoggedIn(false);
-    router.replace('/login');
-  }
-
-  // The dashboard section includes editing and uploading, so those pages keep "Dashboard" lit.
   const onExplore = pathname.startsWith('/explore');
-  const onDashboard = pathname.startsWith('/dashboard') || pathname.startsWith('/upload');
 
   return (
     <header className={`ap-nav${scrolled ? ' is-scrolled' : ''}`}>
       <div className="ap-wrap ap-nav-in">
-        <Link className="ap-logo" href="/">akox</Link>
-        <nav className="ap-links" aria-label="Primary">
-          <Link className="ap-link" href="/explore" aria-current={onExplore ? 'page' : undefined}>Explore</Link>
+        {/* Signed-in people land on their dashboard; visitors land on the home page. */}
+        <div className="ap-nav-l">
+          <MobileMenu title="Menu">
+            <Link className="ap-logo ap-drawer-logo" href={loggedIn ? '/dashboard' : '/'}>akox</Link>
+            <nav className="ap-mm-links" aria-label="Menu">
+              {loggedIn ? (
+                <>
+                  <Link href="/dashboard">Dashboard</Link>
+                  <Link href="/explore" aria-current={onExplore ? 'page' : undefined}>Explore</Link>
+                  <Link href="/dashboard/settings">Settings</Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/explore" aria-current={onExplore ? 'page' : undefined}>Explore</Link>
+                  <Link href="/login">Log in</Link>
+                  <Link className="ap-btn" href="/signup">Get started</Link>
+                </>
+              )}
+            </nav>
+          </MobileMenu>
+          <Link className="ap-logo" href={loggedIn ? '/dashboard' : '/'}>akox</Link>
+        </div>
+        <nav className="ap-links ap-hide-sm" aria-label="Primary">
           {loggedIn ? (
             <>
-              <Link className="ap-link" href="/dashboard" aria-current={onDashboard ? 'page' : undefined}>Dashboard</Link>
-              <button className="ap-btn ap-btn-ghost ap-btn-sm" onClick={() => void logOut()}>Log out</button>
+              <Link className="ap-link" href="/dashboard">Dashboard</Link>
+              <Link className="ap-link" href="/explore" aria-current={onExplore ? 'page' : undefined}>Explore</Link>
+              <Link className="ap-iconlink" href="/dashboard/settings" aria-label="Settings"><GearIcon size={20} /></Link>
             </>
           ) : (
             <>
+              <Link className="ap-link" href="/explore" aria-current={onExplore ? 'page' : undefined}>Explore</Link>
               <Link className="ap-link" href="/login">Log in</Link>
               <Link className="ap-btn ap-btn-sm" href="/signup">Get started</Link>
             </>

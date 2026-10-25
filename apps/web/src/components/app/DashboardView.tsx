@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, type CSSProperties } from 'react';
-import { ArrowIcon, CheckIcon, CompassIcon, CopyIcon, PencilIcon, UploadIcon } from './Icons';
+import { limitsFor } from '@akox/core';
+import { fmtBytes, planLabel } from '../../lib/plan';
+import { useEffect, useState } from 'react';
+import { ChevronLeftIcon, CheckIcon, CompassIcon, CopyIcon, GearIcon, PencilIcon, UploadIcon } from './Icons';
+import { PageHeader } from './PageHeader';
 import { SiteMock } from './SiteMock';
 import { StorageMeter } from './StorageMeter';
 
@@ -16,31 +19,56 @@ export interface DashboardMe {
   plan: string | null;
   /** portfolio_sites.total_bytes */
   usedBytes: number;
+  /** Uploads left in the last 24 hours, out of `uploadsMax`. Left out when unknown. */
+  uploadsLeft?: number;
+  uploadsMax?: number;
 }
 
 interface Task { done: boolean; label: string; href?: string }
 
-function Ring({ value, max }: { value: number; max: number }) {
+const SHORTCUTS = [
+  { href: '/dashboard/edit', title: 'Edit portfolio', sub: 'Bio and projects', tint: 'blue', Icon: PencilIcon },
+  { href: '/dashboard/upload', title: 'Upload your site', sub: 'Publish a zip of your own code', tint: 'green', Icon: UploadIcon },
+  { href: '/explore', title: 'Explore', sub: 'See what others published', tint: 'orange', Icon: CompassIcon },
+  { href: '/dashboard/settings', title: 'Settings', sub: 'Light or dark, and log out', tint: 'gray', Icon: GearIcon },
+] as const;
+
+interface RingSpec { key: string; label: string; value: string; frac: number }
+
+/** Three rings, one inside the other. Each is a real number: profile steps, storage used, uploads left today. */
+function Rings({ rings }: { rings: RingSpec[] }) {
   const [on, setOn] = useState(false);
   useEffect(() => {
     const id = requestAnimationFrame(() => setOn(true));
     return () => cancelAnimationFrame(id);
   }, []);
-  const pct = max ? value / max : 0;
-  const r = 42;
-  const c = 2 * Math.PI * r;
+  const radii = [52, 39, 26];
   return (
-    <div className="ap-ring" role="img" aria-label={`${Math.round(pct * 100)} percent complete`}>
-      <svg viewBox="0 0 100 100" aria-hidden="true">
-        <circle className="ap-ring-track" cx="50" cy="50" r={r} />
-        <circle className="ap-ring-bar" cx="50" cy="50" r={r} strokeDasharray={c} strokeDashoffset={on ? c * (1 - pct) : c} />
+    <div className="ap-rings">
+      <svg viewBox="0 0 120 120" role="img" aria-label={rings.map((r) => `${r.label}: ${r.value}`).join('. ')}>
+        {rings.map((r, i) => {
+          const rad = radii[i] ?? 26;
+          const c = 2 * Math.PI * rad;
+          const f = Math.max(0, Math.min(1, r.frac));
+          return (
+            <g key={r.key} className={`ap-rg is-${r.key}`} transform="rotate(-90 60 60)">
+              <circle className="ap-rg-track" cx="60" cy="60" r={rad} />
+              <circle className="ap-rg-bar" cx="60" cy="60" r={rad} strokeDasharray={c} strokeDashoffset={on ? c * (1 - f) : c} />
+            </g>
+          );
+        })}
       </svg>
-      <span aria-hidden="true">{Math.round(pct * 100)}%</span>
+      <ul className="ap-rings-key">
+        {rings.map((r) => (
+          <li key={r.key} className={`is-${r.key}`}>
+            <span className="ap-rings-dot" aria-hidden="true" />
+            <span><small>{r.label}</small><b>{r.value}</b></span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
-
-const rise = (i: number) => ({ '--i': i } as CSSProperties);
 
 export function DashboardView({ me, copied, onCopy }: { me: DashboardMe; copied: boolean; onCopy: () => void }) {
   const tasks: Task[] = [
@@ -50,100 +78,92 @@ export function DashboardView({ me, copied, onCopy }: { me: DashboardMe; copied:
     { done: me.projects > 0, label: 'Add your first project', href: '/dashboard/edit' },
   ];
   const doneCount = tasks.filter((t) => t.done).length;
-  const firstName = me.name.trim().split(/\s+/)[0] || me.name;
+  const complete = doneCount === tasks.length;
+  const max = limitsFor(me.plan).maxUnpackedBytes;
+  const date = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
 
-  const next = me.bio.trim().length === 0
-    ? { title: 'Write a short bio', text: 'Tell visitors who you are in a sentence or two. It sits right under your name.', cta: 'Add my bio' }
-    : me.projects === 0
-      ? { title: 'Add your first project', text: 'Show something you built. Projects are what people click on.', cta: 'Add a project' }
-      : null;
+  const rings: RingSpec[] = [
+    { key: 'profile', label: 'Profile', value: `${doneCount} of ${tasks.length} steps`, frac: doneCount / tasks.length },
+    { key: 'storage', label: 'Storage', value: `${fmtBytes(me.usedBytes)} of ${fmtBytes(max)}`, frac: max ? me.usedBytes / max : 0 },
+  ];
+  if (me.uploadsLeft !== undefined && me.uploadsMax) {
+    rings.push({ key: 'uploads', label: 'Uploads left today', value: `${me.uploadsLeft} of ${me.uploadsMax}`, frac: me.uploadsLeft / me.uploadsMax });
+  }
 
   return (
-    <>
-      <div className="ap-dash-head ap-rise" style={rise(0)}>
-        <div>
-          <h1 className="ap-title">Hi, {firstName}</h1>
-          <div className="ap-addr-row">
-            <div className="ap-addr">
-              <span className="ap-lock" />
-              <span>{me.username}<span className="ap-url-dim">.akox.in</span></span>
-            </div>
-            <button type="button" className={`ap-btn ap-btn-ghost ap-btn-sm${copied ? ' is-done' : ''}`} onClick={onCopy}>
-              {copied ? <CheckIcon size={16} className="ap-pop" /> : <CopyIcon size={16} />}
-              {copied ? 'Copied' : 'Copy link'}
+    <div className="ap-home">
+      <header className="ap-home-head">
+        <p className="ap-home-date">{date}</p>
+        <h1>{me.name}</h1>
+      </header>
+
+      <section className="ap-hero" aria-label="Your page">
+        <div className="ap-hero-text">
+          <p className="ap-hero-cap">Your page</p>
+          <h2 className="ap-mono">{me.username}<span>.akox.in</span></h2>
+          <p className="ap-hero-sub">
+            {me.projects === 0 ? 'No projects yet.' : `${me.projects} ${me.projects === 1 ? 'project' : 'projects'} on show.`}{' '}
+            {me.bio.trim() ? 'Your bio is in.' : 'Add a bio so people know who you are.'}
+          </p>
+          <div className="ap-hero-actions">
+            <Link className="ap-btn" href={'/u/' + me.username}>Open my page</Link>
+            <button type="button" className="ap-btn ap-btn-ghost" onClick={onCopy}>
+              {copied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}{copied ? 'Copied' : 'Copy link'}
             </button>
+            <span className="ap-sr" role="status">{copied ? 'Link copied' : ''}</span>
           </div>
-          <span className="ap-sr" role="status">{copied ? 'Link copied' : ''}</span>
         </div>
-        <Link className="ap-btn" href={'/u/' + me.username}>Open my page</Link>
-      </div>
-
-      <div className="ap-dash-grid">
-        <div className="ap-dash-main">
-          {next ? (
-            <section className="ap-next ap-rise" style={rise(1)} aria-labelledby="next-h">
-              <p className="ap-next-tag">Next step</p>
-              <h2 id="next-h">{next.title}</h2>
-              <p>{next.text}</p>
-              <Link className="ap-btn ap-btn-light" href="/dashboard/edit">{next.cta}<ArrowIcon size={18} className="ap-nudge" /></Link>
-            </section>
-          ) : (
-            <section className="ap-next ap-rise" style={rise(1)} aria-labelledby="next-h">
-              <p className="ap-next-tag">All set</p>
-              <h2 id="next-h">Your portfolio is ready to share</h2>
-              <p>Copy your link and send it to one person today. A real visitor is the best test.</p>
-              <div className="ap-actions">
-                <button type="button" className="ap-btn ap-btn-light" onClick={onCopy}>{copied ? 'Copied' : 'Copy my link'}</button>
-                <Link className="ap-btn ap-btn-onblue" href={'/u/' + me.username}>Open my page</Link>
-              </div>
-            </section>
-          )}
-
-          <div className="ap-tiles">
-            <Link className="ap-tile ap-rise" style={rise(2)} href="/dashboard/edit">
-              <span className="ap-tile-icon"><PencilIcon /></span>
-              <b>Edit portfolio</b>
-              <span className="ap-tile-sub">Your bio and projects</span>
-            </Link>
-            <Link className="ap-tile ap-rise" style={rise(3)} href="/upload">
-              <span className="ap-tile-icon"><UploadIcon /></span>
-              <b>Upload your site</b>
-              <span className="ap-tile-sub">Bring your own code</span>
-            </Link>
-            <Link className="ap-tile ap-rise" style={rise(4)} href="/explore">
-              <span className="ap-tile-icon"><CompassIcon /></span>
-              <b>Explore</b>
-              <span className="ap-tile-sub">See what others built</span>
-            </Link>
-          </div>
-
-          <section className="ap-panel ap-rise" style={{ ...rise(5), marginTop: 20 }} aria-labelledby="finish-h">
-            <div className="ap-progress-head">
-              <Ring value={doneCount} max={tasks.length} />
-              <div>
-                <h2 className="ap-h2" id="finish-h">Finish your portfolio</h2>
-                <p className="ap-note" style={{ margin: 0 }}>{doneCount} of {tasks.length} done</p>
-              </div>
-            </div>
-            <ul className="ap-tasks">
-              {tasks.map((t) => (
-                <li key={t.label} className={t.done ? '' : 'is-todo'}>
-                  <span className={`ap-tick${t.done ? ' is-done' : ''}`} aria-hidden="true">{t.done && <CheckIcon size={13} strokeWidth={3.5} />}</span>
-                  <span className="ap-sr">{t.done ? 'Done: ' : 'To do: '}</span>
-                  {!t.done && t.href ? <Link className="ap-textlink" href={t.href}>{t.label}</Link> : t.label}
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-
-        <aside className="ap-dash-aside ap-rise" style={rise(2)} aria-label="Preview of your page">
-          <p className="ap-note" style={{ margin: '0 0 12px' }}>This is how your page looks right now.</p>
+        <div className="ap-hero-art" aria-hidden="true">
           <SiteMock username={me.username} name={me.name} bio={me.bio} projects={me.items} />
-          <p className="ap-note">It goes live on the internet when we deploy AKOX. For now, your page is on this computer.</p>
-          <StorageMeter used={me.usedBytes} plan={me.plan} />
-        </aside>
+        </div>
+      </section>
+
+      {/* The to-do list is only here while there is something left to do. */}
+      {!complete && (
+        <section className="ap-group-wrap" aria-labelledby="finish-h">
+          <h2 className="ap-group-h" id="finish-h">Finish your portfolio</h2>
+          <ul className="ap-group">
+            {tasks.map((t) => (
+              <li key={t.label} className={t.done ? 'is-done' : 'is-todo'}>
+                {!t.done && t.href ? (
+                  <Link href={t.href}>
+                    <span className="ap-circle" aria-hidden="true" /><span className="ap-sr">To do: </span>{t.label}
+                    <ChevronLeftIcon size={16} className="ap-chev" />
+                  </Link>
+                ) : (
+                  <span className="ap-group-row">
+                    <span className="ap-circle is-done" aria-hidden="true"><CheckIcon size={13} strokeWidth={3.5} /></span><span className="ap-sr">Done: </span>{t.label}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <div className="ap-home-grid">
+        <section className="ap-card" aria-labelledby="rings-h">
+          <h2 className="ap-group-h" id="rings-h">Overview</h2>
+          <Rings rings={rings} />
+        </section>
+
+        <section className="ap-group-wrap" aria-labelledby="short-h">
+          <h2 className="ap-group-h" id="short-h">Shortcuts</h2>
+          <ul className="ap-group">
+            {SHORTCUTS.map((r) => (
+              <li key={r.href}>
+                <Link href={r.href}>
+                  <span className={`ap-ico is-${r.tint}`} aria-hidden="true"><r.Icon size={18} /></span>
+                  <span className="ap-group-text"><b>{r.title}</b><small>{r.sub}</small></span>
+                  <ChevronLeftIcon size={16} className="ap-chev" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
-    </>
+
+      <StorageMeter used={me.usedBytes} plan={me.plan} />
+    </div>
   );
 }

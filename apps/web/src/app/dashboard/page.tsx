@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getSupabase } from '../../lib/supabase';
-import { AppBar } from '../../components/AppBar';
+import { DAILY_LIMIT } from '../../lib/limits';
 import { DashboardView, type DashboardMe } from '../../components/app/DashboardView';
 
 export default function DashboardPage() {
@@ -28,6 +28,8 @@ export default function DashboardPage() {
         .order('created_at')
         .limit(3);
       const { data: site } = await sb.from('portfolio_sites').select('total_bytes').eq('owner_id', user.id).maybeSingle();
+      const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const { count: used } = await sb.from('publish_log').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).gte('created_at', since);
       const items = ((list ?? []) as { title: string; description: string | null }[])
         .map((r) => ({ title: String(r.title), description: String(r.description ?? '') }));
       setMe({
@@ -38,6 +40,8 @@ export default function DashboardPage() {
         items,
         plan: p.plan ? String(p.plan) : null,
         usedBytes: Number(site?.total_bytes ?? 0),
+        uploadsLeft: Math.max(0, DAILY_LIMIT - (used ?? 0)),
+        uploadsMax: DAILY_LIMIT,
       });
       setState('in');
     })();
@@ -51,31 +55,27 @@ export default function DashboardPage() {
     });
   }
 
-  return (
-    <>
-      <AppBar />
-      <main className="ap-wrap ap-page">
-        {state === 'loading' && (
-          <div aria-busy="true">
-            <p className="ap-sr" role="status">Loading your dashboard</p>
-            <div className="ap-skel" style={{ height: 56, width: 'min(420px, 100%)', marginBottom: 28 }} />
-            <div className="ap-dash-grid">
-              <div className="ap-skel" style={{ height: 260 }} />
-              <div className="ap-skel" style={{ height: 260 }} />
-            </div>
-          </div>
-        )}
+  if (state === 'loading') {
+    return (
+      <div aria-busy="true">
+        <p className="ap-sr" role="status">Loading your dashboard</p>
+        <div className="ap-skel" style={{ height: 52, width: 'min(420px, 100%)', marginBottom: 12 }} />
+        <div className="ap-skel" style={{ height: 40, width: 'min(300px, 100%)', marginBottom: 28 }} />
+        <div className="ap-skel" style={{ height: 300, borderRadius: 24, marginBottom: 20 }} />
+        <div className="ap-skel" style={{ height: 220, borderRadius: 20 }} />
+      </div>
+    );
+  }
 
-        {state === 'out' && (
-          <div className="ap-narrow">
-            <h1 className="ap-title">You are not logged in</h1>
-            <p className="ap-lead">Log in to see your portfolio.</p>
-            <Link className="ap-btn" href="/login">Go to login</Link>
-          </div>
-        )}
+  if (state === 'out' || !me) {
+    return (
+      <div className="ap-narrow">
+        <h1 className="ap-title">You are not logged in</h1>
+        <p className="ap-lead">Log in to see your portfolio.</p>
+        <Link className="ap-btn" href="/login">Go to login</Link>
+      </div>
+    );
+  }
 
-        {state === 'in' && me && <DashboardView me={me} copied={copied} onCopy={copy} />}
-      </main>
-    </>
-  );
+  return <DashboardView me={me} copied={copied} onCopy={copy} />;
 }
