@@ -20,13 +20,14 @@ export default function DashboardPage() {
       const { data } = await sb.auth.getSession();
       const user = data.session?.user;
       if (!user) { setState('out'); return; }
-      const { data: p } = await sb.from('profiles').select('username, display_name, bio').eq('id', user.id).maybeSingle();
+      const { data: p } = await sb.from('profiles').select('username, display_name, bio, plan').eq('id', user.id).maybeSingle();
       if (!p) { router.replace('/onboarding'); return; }
       const { data: list, count } = await sb.from('projects')
         .select('title, description', { count: 'exact' })
         .eq('owner_id', user.id)
         .order('created_at')
         .limit(3);
+      const { data: site } = await sb.from('portfolio_sites').select('total_bytes').eq('owner_id', user.id).maybeSingle();
       const items = ((list ?? []) as { title: string; description: string | null }[])
         .map((r) => ({ title: String(r.title), description: String(r.description ?? '') }));
       setMe({
@@ -35,6 +36,8 @@ export default function DashboardPage() {
         bio: String(p.bio ?? ''),
         projects: count ?? items.length,
         items,
+        plan: p.plan ? String(p.plan) : null,
+        usedBytes: Number(site?.total_bytes ?? 0),
       });
       setState('in');
     })();

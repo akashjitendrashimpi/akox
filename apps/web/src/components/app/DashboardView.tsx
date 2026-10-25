@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { ArrowIcon, CheckIcon, CompassIcon, CopyIcon, PencilIcon, UploadIcon } from './Icons';
 import { SiteMock } from './SiteMock';
+import { StorageMeter } from './StorageMeter';
 
 export interface DashboardMe {
   username: string;
@@ -11,6 +12,10 @@ export interface DashboardMe {
   bio: string;
   projects: number;
   items: { title: string; description: string }[];
+  /** profiles.plan */
+  plan: string | null;
+  /** portfolio_sites.total_bytes */
+  usedBytes: number;
 }
 
 interface Task { done: boolean; label: string; href?: string }
@@ -136,6 +141,7 @@ export function DashboardView({ me, copied, onCopy }: { me: DashboardMe; copied:
           <p className="ap-note" style={{ margin: '0 0 12px' }}>This is how your page looks right now.</p>
           <SiteMock username={me.username} name={me.name} bio={me.bio} projects={me.items} />
           <p className="ap-note">It goes live on the internet when we deploy AKOX. For now, your page is on this computer.</p>
+          <StorageMeter used={me.usedBytes} plan={me.plan} />
         </aside>
       </div>
     </>

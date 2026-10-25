@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState, type DragEvent } from 'react';
-import { BundleError, extractBundle, type Bundle } from '@akox/core';
+import { BundleError, extractBundle, limitsFor, type Bundle } from '@akox/core';
 import { getSupabase } from '../../lib/supabase';
 import { DAILY_LIMIT } from '../../lib/limits';
 import { AppBar } from '../../components/AppBar';
 import { CheckIcon, SuccessMark } from '../../components/app/Icons';
+import { StorageMeter } from '../../components/app/StorageMeter';
+import { describeLimits } from '../../lib/plan';
 
 type Result = { ok: true; bundle: Bundle; file: File } | { ok: false; message: string };
 
@@ -27,32 +29,39 @@ export default function UploadPage() {
   const [live, setLive] = useState(false);
   const [over, setOver] = useState(false);
   const [error, setError] = useState('');
+  // The plan decides the limits. Until it has loaded, uploads wait, so a paid user is never checked against free limits.
+  const [plan, setPlan] = useState<string | null>(null);
+  const [usedBytes, setUsedBytes] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const limits = limitsFor(plan);
 
   const refresh = useCallback(async () => {
     const sb = getSupabase();
-    if (!sb) return;
+    if (!sb) { setLoaded(true); return; }
     const { data } = await sb.auth.getSession();
     const user = data.session?.user;
-    if (!user) return;
+    if (!user) { setLoaded(true); return; }
     setSignedIn(true);
     const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
     const [{ data: p }, { count }, { data: site }] = await Promise.all([
-      sb.from('profiles').select('username').eq('id', user.id).maybeSingle(),
+      sb.from('profiles').select('username, plan').eq('id', user.id).maybeSingle(),
       sb.from('publish_log').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).gte('created_at', since),
-      sb.from('portfolio_sites').select('previous_version').eq('owner_id', user.id).maybeSingle(),
+      sb.from('portfolio_sites').select('previous_version, total_bytes').eq('owner_id', user.id).maybeSingle(),
     ]);
-    if (p) setUsername(String(p.username));
+    if (p) { setUsername(String(p.username)); setPlan(p.plan ? String(p.plan) : null); }
+    setUsedBytes(Number(site?.total_bytes ?? 0));
     setLeft(Math.max(0, DAILY_LIMIT - (count ?? 0)));
     setHasPrev(Boolean(site?.previous_version));
+    setLoaded(true);
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
   async function read(file: File | undefined) {
-    if (!file) return;
+    if (!file || !loaded) return;
     setBusy(true); setLive(false); setError('');
     try {
-      const bundle = extractBundle(new Uint8Array(await file.arrayBuffer()));
+      const bundle = extractBundle(new Uint8Array(await file.arrayBuffer()), limits);
       setResult({ ok: true, bundle, file });
     } catch (err) {
       setResult({ ok: false, message: err instanceof BundleError ? err.message : 'Could not read that file. Is it a .zip?' });
@@ -99,6 +108,7 @@ export default function UploadPage() {
         <div className="ap-narrow">
           <h1 className="ap-title">Upload your site</h1>
           <p className="ap-lead">Your portfolio is one site. Zip the folder (it needs an index.html at the top) and drop it here. You can replace it up to {DAILY_LIMIT} times a day.</p>
+          <p className="ap-limits" aria-live="polite">{loaded ? describeLimits(plan, limits) : 'Checking your plan limits...'}</p>
           <ol className="ap-stepper" aria-label="Upload progress">
             {['Choose your zip', 'Review', 'Go live'].map((label, i) => (
               <li key={label} className={i + 1 < step || step === 3 && i === 2 ? 'is-done' : i + 1 === step ? 'is-now' : ''}
@@ -117,6 +127,7 @@ export default function UploadPage() {
               </div>
             </div>
           )}
+          {signedIn && <StorageMeter used={usedBytes} plan={plan} />}
 
           <label
             className={`ap-drop${over ? ' is-over' : ''}${busy ? ' is-busy' : ''}`}
@@ -129,11 +140,13 @@ export default function UploadPage() {
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 16V4m0 0L7 9m5-5 5 5M4 20h16" />
             </svg>
-            <span className="ap-drop-main">{busy ? 'Working...' : 'Drop a .zip here, or click to choose one'}</span>
-            <input id="zip" type="file" accept=".zip,application/zip" onChange={(e) => void read(e.target.files?.[0])} />
+            <span className="ap-drop-main">{!loaded ? 'Loading your plan...' : busy ? 'Working...' : 'Drop a .zip here, or click to choose one'}</span>
+            <input id="zip" type="file" accept=".zip,application/zip" disabled={!loaded} onChange={(e) => void read(e.target.files?.[0])} />
           </label>
 
-          {result && !result.ok && <p className="ap-note bad" role="alert">{result.message}</p>}
+          {result && !result.ok && (
+            <div className="ap-alert" role="alert"><b>This zip cannot be published</b><span>{result.message}</span></div>
+          )}
 
           {result && result.ok && (
             <section className="ap-panel" style={{ marginTop: 16 }}>
@@ -149,7 +162,7 @@ export default function UploadPage() {
             </section>
           )}
 
-          {error && <p className="ap-note bad" role="alert">{error}</p>}
+          {error && <div className="ap-alert" role="alert"><b>Upload failed</b><span>{error}</span></div>}
 
           {hasPrev && (
             <p className="ap-note" style={{ marginTop: 20 }}>Made a mistake? <button className="ap-btn ap-btn-ghost ap-btn-sm" disabled={busy} onClick={() => void goBack()}>Go back to the previous version</button></p>

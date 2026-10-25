@@ -98,6 +98,9 @@ export function extractBundle(zip: Uint8Array, limits: Limits = LIMITS): Bundle 
         assertSafePath(name, limits);
         if (isIgnored(name)) return false;
 
+        if (limits.blockedExtensions?.includes(extensionOf(name))) {
+          throw new BundleError('FORBIDDEN_FILE_TYPE', 'Video files are not allowed on your plan. Put the video on YouTube or Vimeo and embed it instead.');
+        }
         if (!contentTypeFor(name)) {
           const ext = extensionOf(name);
           throw new BundleError(

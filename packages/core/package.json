@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./slug": "./src/slug.ts",
+    "./mime": "./src/mime.ts",
     "./types": "./src/types.ts"
   },
   "scripts": {
