@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { siteUrl } from '../../../lib/site-url';
 import { AppBar } from '../../../components/AppBar';
 import { BackLink } from '../../../components/BackLink';
 import { ReportButton } from '../../../components/ReportButton';
@@ -30,6 +31,10 @@ export default async function PublicPortfolio({ params }: { params: Promise<{ us
       </>
     );
   }
+
+  // One portfolio per person: once a site is published (template or custom), that site is their portfolio.
+  const { data: site } = await sb.from('portfolio_sites').select('version').eq('owner_id', p.id).maybeSingle();
+  if (site?.version) redirect(siteUrl(String(p.username)));
 
   const { data: list } = await sb.from('projects').select('id, title, description, url').eq('owner_id', p.id).order('created_at');
   const projects = (list ?? []) as { id: string; title: string; description: string; url: string | null }[];

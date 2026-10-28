@@ -7,7 +7,7 @@ import { getSupabase } from '../../lib/supabase';
 import { planLabel } from '../../lib/plan';
 import { AppBar } from '../AppBar';
 import { MobileMenu } from '../MobileMenu';
-import { CompassIcon, ExternalIcon, GearIcon, GridIcon, PencilIcon, UploadIcon } from './Icons';
+import { CompassIcon, ExternalIcon, GearIcon, GridIcon, LayoutIcon, PencilIcon, UploadIcon } from './Icons';
 
 export interface ShellUser {
   id: string;
@@ -37,7 +37,8 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', short: 'Home', Icon: GridIcon, exact: true },
-  { href: '/dashboard/edit', label: 'Edit portfolio', short: 'Edit', Icon: PencilIcon },
+  { href: '/dashboard/edit', label: 'Profile and projects', short: 'Profile', Icon: PencilIcon },
+  { href: '/dashboard/templates', label: 'Site builder', short: 'Build', Icon: LayoutIcon },
   { href: '/dashboard/upload', label: 'Upload site', short: 'Upload', Icon: UploadIcon },
   { href: '/explore', label: 'Explore', short: 'Explore', Icon: CompassIcon },
   { href: '/dashboard/settings', label: 'Settings', short: 'Settings', Icon: GearIcon },

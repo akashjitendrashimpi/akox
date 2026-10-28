@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getSupabase } from '../../lib/supabase';
 import { DAILY_LIMIT } from '../../lib/limits';
+import { asKind } from '../../lib/liveSite';
 import { DashboardView, type DashboardMe } from '../../components/app/DashboardView';
 
 export default function DashboardPage() {
@@ -27,7 +28,7 @@ export default function DashboardPage() {
         .eq('owner_id', user.id)
         .order('created_at')
         .limit(3);
-      const { data: site } = await sb.from('portfolio_sites').select('total_bytes').eq('owner_id', user.id).maybeSingle();
+      const { data: site } = await sb.from('portfolio_sites').select('total_bytes, kind, previous_kind, updated_at').eq('owner_id', user.id).maybeSingle();
       const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
       const { count: used } = await sb.from('publish_log').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).gte('created_at', since);
       const items = ((list ?? []) as { title: string; description: string | null }[])
@@ -40,6 +41,9 @@ export default function DashboardPage() {
         items,
         plan: p.plan ? String(p.plan) : null,
         usedBytes: Number(site?.total_bytes ?? 0),
+        kind: site ? asKind(site.kind) : null,
+        previousKind: site ? asKind(site.previous_kind) : null,
+        updatedAt: site?.updated_at ? String(site.updated_at) : null,
         uploadsLeft: Math.max(0, DAILY_LIMIT - (used ?? 0)),
         uploadsMax: DAILY_LIMIT,
       });

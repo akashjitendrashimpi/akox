@@ -17,6 +17,8 @@ export default function SettingsPage() {
 
   async function logOut() {
     setBusy(true);
+    // A draft holds the person's email and bio. Do not leave it behind on a shared computer.
+    try { if (user) localStorage.removeItem('akox:site-draft:' + user.id); } catch { /* storage blocked */ }
     await getSupabase()?.auth.signOut();
     router.replace('/login');
   }

@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { limitsFor } from '@akox/core';
 import { fmtBytes, planLabel } from '../../lib/plan';
+import { fmtWhen, kindLabel, type SiteKind } from '../../lib/liveSite';
 import { useEffect, useState } from 'react';
-import { ChevronLeftIcon, CheckIcon, CompassIcon, CopyIcon, GearIcon, PencilIcon, UploadIcon } from './Icons';
+import { ChevronLeftIcon, CheckIcon, CompassIcon, CopyIcon, GearIcon, LayoutIcon, PencilIcon, UploadIcon } from './Icons';
 import { PageHeader } from './PageHeader';
 import { SiteMock } from './SiteMock';
 import { StorageMeter } from './StorageMeter';
@@ -20,6 +21,10 @@ export interface DashboardMe {
   /** portfolio_sites.total_bytes */
   usedBytes: number;
   /** Uploads left in the last 24 hours, out of `uploadsMax`. Left out when unknown. */
+  /** portfolio_sites.kind. null means nothing is published yet. */
+  kind?: SiteKind | null;
+  previousKind?: SiteKind | null;
+  updatedAt?: string | null;
   uploadsLeft?: number;
   uploadsMax?: number;
 }
@@ -27,7 +32,8 @@ export interface DashboardMe {
 interface Task { done: boolean; label: string; href?: string }
 
 const SHORTCUTS = [
-  { href: '/dashboard/edit', title: 'Edit portfolio', sub: 'Bio and projects', tint: 'blue', Icon: PencilIcon },
+  { href: '/dashboard/edit', title: 'Profile and projects', sub: 'Your card in Explore', tint: 'blue', Icon: PencilIcon },
+  { href: '/dashboard/templates', title: 'Build a site', sub: 'Pick a template and fill it in', tint: 'purple', Icon: LayoutIcon },
   { href: '/dashboard/upload', title: 'Upload your site', sub: 'Publish a zip of your own code', tint: 'green', Icon: UploadIcon },
   { href: '/explore', title: 'Explore', sub: 'See what others published', tint: 'orange', Icon: CompassIcon },
   { href: '/dashboard/settings', title: 'Settings', sub: 'Light or dark, and log out', tint: 'gray', Icon: GearIcon },
@@ -102,11 +108,15 @@ export function DashboardView({ me, copied, onCopy }: { me: DashboardMe; copied:
           <p className="ap-hero-cap">Your page</p>
           <h2 className="ap-mono">{me.username}<span>.akox.in</span></h2>
           <p className="ap-hero-sub">
-            {me.projects === 0 ? 'No projects yet.' : `${me.projects} ${me.projects === 1 ? 'project' : 'projects'} on show.`}{' '}
-            {me.bio.trim() ? 'Your bio is in.' : 'Add a bio so people know who you are.'}
+            {me.kind
+              ? <>Live now: <b>{kindLabel(me.kind)}</b>{me.updatedAt ? `, updated ${fmtWhen(me.updatedAt)}` : ''}.
+                {me.previousKind ? ` The previous version (${kindLabel(me.previousKind)}) is one click away on the Upload page.` : ''}</>
+              : 'Nothing is published yet. Build a site from a template, or upload your own.'}
           </p>
           <div className="ap-hero-actions">
-            <Link className="ap-btn" href={'/u/' + me.username}>Open my page</Link>
+            {me.kind
+              ? <Link className="ap-btn" href={'/u/' + me.username}>Open my page</Link>
+              : <Link className="ap-btn" href="/dashboard/templates">Build a site</Link>}
             <button type="button" className="ap-btn ap-btn-ghost" onClick={onCopy}>
               {copied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}{copied ? 'Copied' : 'Copy link'}
             </button>

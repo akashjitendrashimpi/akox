@@ -61,6 +61,7 @@ export default function EditPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ text: string; bad: boolean } | null>(null);
+  const [liveKind, setLiveKind] = useState<string | null>(null);
 
   const dirty = name !== saved.name || bio !== saved.bio;
 
@@ -80,6 +81,8 @@ export default function EditPage() {
       setName(n); setBio(b); setSaved({ name: n, bio: b });
       const { data: list } = await sb.from('projects').select('id, title, description, url').eq('owner_id', user.id).order('created_at');
       setProjects((list ?? []) as Project[]);
+      const { data: site } = await sb.from('portfolio_sites').select('kind').eq('owner_id', user.id).maybeSingle();
+      setLiveKind(site ? String(site.kind) : null);
     })();
   }, [router]);
 
@@ -98,7 +101,9 @@ export default function EditPage() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  const say = (text: string, bad = false) => setToast({ text, bad });
+  // Saving here never changes a published website, so say so when one is live.
+  const say = (text: string, bad = false) =>
+    setToast({ text: !bad && liveKind ? `${text.replace(/\.$/, '')}. Your live website is unchanged.` : text, bad });
   const linkProblem = (m: string) => (m.includes('url') ? 'The link must start with http:// or https://' : m);
 
   async function saveProfile(e?: FormEvent) {
@@ -160,12 +165,13 @@ export default function EditPage() {
   return (
     <>
       <PageHeader
-        title="Edit portfolio"
-        lead="Changes show on your public page as soon as you save."
+        title="Profile and projects"
+        lead="This is your card in Explore, and your page until you publish a site. Your live website is edited in Site builder or Upload site."
         actions={username && (
           <Link className="ap-btn ap-btn-ghost ap-btn-sm" href={'/u/' + username}>View public page<ExternalIcon size={16} /></Link>
         )}
       />
+      <p className="ap-note ap-editnote">Saving here does not change a website you have published. Templates are filled in on the Site builder page.</p>
 
       <div className="ap-segtabs" role="tablist" aria-label="Sections">
         <button type="button" role="tab" id="tab-profile" aria-selected={tab === 'profile'} aria-controls="panel-profile" onClick={() => setTab('profile')}>
@@ -263,7 +269,7 @@ export default function EditPage() {
         </div>
 
         <aside className="ap-edit-preview" aria-hidden="true">
-          <p className="ap-note">Live preview of your public page</p>
+          <p className="ap-note">Preview of your profile card</p>
           <SiteMock username={username} name={name} bio={bio} projects={projects.map((p) => ({ title: p.title, description: p.description }))} />
         </aside>
       </div>

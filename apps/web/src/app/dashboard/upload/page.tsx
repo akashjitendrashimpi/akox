@@ -6,6 +6,7 @@ import { BundleError, extractBundle, limitsFor, type Bundle } from '@akox/core';
 import { getSupabase } from '../../../lib/supabase';
 import { DAILY_LIMIT } from '../../../lib/limits';
 import { describeLimits, fmtBytes } from '../../../lib/plan';
+import { asKind, confirmReplace, fmtWhen, kindLabel, type SiteKind } from '../../../lib/liveSite';
 import { ArrowIcon, CheckIcon, ChevronLeftIcon, SuccessMark, UploadIcon } from '../../../components/app/Icons';
 import { PageHeader } from '../../../components/app/PageHeader';
 import { StorageMeter } from '../../../components/app/StorageMeter';
@@ -35,6 +36,8 @@ export default function UploadPage() {
   const [plan, setPlan] = useState<string | null>(null);
   const [usedBytes, setUsedBytes] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [kind, setKind] = useState<SiteKind | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const limits = limitsFor(plan);
 
   const refresh = useCallback(async () => {
@@ -48,12 +51,14 @@ export default function UploadPage() {
     const [{ data: p }, { count }, { data: site }] = await Promise.all([
       sb.from('profiles').select('username, plan').eq('id', user.id).maybeSingle(),
       sb.from('publish_log').select('id', { count: 'exact', head: true }).eq('owner_id', user.id).gte('created_at', since),
-      sb.from('portfolio_sites').select('previous_version, total_bytes').eq('owner_id', user.id).maybeSingle(),
+      sb.from('portfolio_sites').select('previous_version, total_bytes, kind, updated_at').eq('owner_id', user.id).maybeSingle(),
     ]);
     if (p) { setUsername(String(p.username)); setPlan(p.plan ? String(p.plan) : null); }
     setUsedBytes(Number(site?.total_bytes ?? 0));
     setLeft(Math.max(0, DAILY_LIMIT - (count ?? 0)));
     setHasPrev(Boolean(site?.previous_version));
+    setKind(site ? asKind(site.kind) : null);
+    setUpdatedAt(site?.updated_at ? String(site.updated_at) : null);
     setLoaded(true);
   }, []);
 
@@ -201,7 +206,7 @@ export default function UploadPage() {
                   Next<ArrowIcon size={18} className="ap-nudge" />
                 </button>
               ) : (
-                <button type="button" className="ap-btn" aria-busy={busy} disabled={!signedIn || busy || left === 0} onClick={() => void publish()}>
+                <button type="button" className="ap-btn" aria-busy={busy} disabled={!signedIn || busy || left === 0} onClick={() => { if (confirmReplace(kind, 'zip')) void publish(); }}>
                   {left === 0 ? 'No uploads left today' : busy ? 'Publishing...' : 'Publish to ' + (username || 'my address')}
                 </button>
               )}
@@ -216,6 +221,11 @@ export default function UploadPage() {
               <div className="ap-slots" role="progressbar" aria-label="Uploads left today" aria-valuemin={0} aria-valuemax={DAILY_LIMIT} aria-valuenow={left}>
                 {Array.from({ length: DAILY_LIMIT }, (_, k) => <i key={k} className={k < left ? 'is-on' : ''} />)}
               </div>
+            </div>
+          )}
+          {signedIn && (
+            <div className="ap-panel ap-livenow">
+              <p className="ap-note" style={{ margin: 0 }}>{kind ? <>Live now: <b>{kindLabel(kind)}</b>{updatedAt ? `, updated ${fmtWhen(updatedAt)}` : ''}</> : 'Nothing is published yet.'}</p>
             </div>
           )}
           {signedIn && <StorageMeter used={usedBytes} plan={plan} />}

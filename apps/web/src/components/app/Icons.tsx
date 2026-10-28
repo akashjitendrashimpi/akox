@@ -44,3 +44,4 @@ export const PlusIcon = (p: P) => <Base {...p}><path d="M12 5v14M5 12h14" /></Ba
 
 export const MenuIcon = (p: P) => <Base {...p}><path d="M4 7h16M4 12h16M4 17h16" /></Base>;
 export const CloseIcon = (p: P) => <Base {...p}><path d="m6 6 12 12M18 6 6 18" /></Base>;
+export const LayoutIcon = (p: P) => <Base {...p}><rect x="3.5" y="4" width="17" height="16" rx="2.5" /><path d="M3.5 9.5h17M10 9.5V20" /></Base>;

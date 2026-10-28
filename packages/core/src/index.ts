@@ -4,3 +4,4 @@ export * from './slug';
 export * from './types';
 export * from './bundle';
 export * from './publish';
+export * from './templates';
