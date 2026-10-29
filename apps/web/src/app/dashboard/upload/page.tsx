@@ -10,6 +10,7 @@ import { asKind, confirmReplace, fmtWhen, kindLabel, type SiteKind } from '../..
 import { ArrowIcon, CheckIcon, ChevronLeftIcon, SuccessMark, UploadIcon } from '../../../components/app/Icons';
 import { PageHeader } from '../../../components/app/PageHeader';
 import { StorageMeter } from '../../../components/app/StorageMeter';
+import { siteUrl } from '../../../lib/site-url';
 
 type Result = { ok: true; bundle: Bundle; file: File } | { ok: false; message: string };
 type View = 1 | 2 | 3;
@@ -186,7 +187,7 @@ export default function UploadPage() {
                 <p className="ap-live-url ap-mono">{username}.akox.in</p>
                 <p className="ap-note">On this computer it opens at /s/{username}.</p>
                 <div className="ap-actions">
-                  <a className="ap-btn" href={'/s/' + username + '/'} target="_blank" rel="noopener">Open my site</a>
+                  <a className="ap-btn" href={siteUrl(username)} target="_blank" rel="noopener">Open my site</a>
                   <button type="button" className="ap-btn ap-btn-ghost" onClick={startOver}>Upload another version</button>
                 </div>
               </div>

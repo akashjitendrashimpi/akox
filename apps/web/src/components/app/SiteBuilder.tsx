@@ -15,6 +15,7 @@ import { ImageHint } from './ImageHint';
 import { PageHeader } from './PageHeader';
 import { ScaledFrame } from './ScaledFrame';
 import { useShellUser } from './Shell';
+import { siteUrl } from '../../lib/site-url';
 import { TemplatePicker } from './TemplatePicker';
 
 const decode = (d: Uint8Array | undefined): string => new TextDecoder().decode(d);
@@ -357,7 +358,7 @@ export function SiteBuilder() {
                 <p className="ap-live-url ap-mono">{address}</p>
                 <p className="ap-note">On this computer it opens at /s/{user?.username}.</p>
                 <div className="ap-actions">
-                  <a className="ap-btn" href={'/s/' + (user?.username ?? '') + '/'} target="_blank" rel="noopener">Open my site</a>
+                  <a className="ap-btn" href={siteUrl(user?.username ?? '')} target="_blank" rel="noopener">Open my site</a>
                   <button type="button" className="ap-btn ap-btn-ghost" onClick={() => setLive(false)}>Keep editing</button>
                 </div>
               </div>
