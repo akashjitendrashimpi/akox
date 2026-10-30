@@ -1,6 +1,7 @@
 'use client';
 
 import type { ChangeEvent } from 'react';
+import { SITE_SUFFIX, siteHostname } from '../../lib/site-url';
 
 /** Lowercase letters, digits and hyphens only, so the preview always looks like a real subdomain. */
 export function cleanHandle(raw: string) {
@@ -44,12 +45,12 @@ export function ClaimForm({ value, onChange, placeholder, idPrefix, cta = 'Claim
           aria-describedby={hintId}
           style={{ width: `${width}ch` }}
         />
-        <span className="lp-claim-suffix" aria-hidden="true">.akox.in</span>
+        <span className="lp-claim-suffix" aria-hidden="true">{SITE_SUFFIX}</span>
       </label>
       <button className="lp-btn" type="submit">{cta}</button>
       <p id={hintId} className="lp-hint" aria-live="polite">
         {value
-          ? <>Your portfolio will live at <b>{value}.akox.in</b></>
+          ? <>Your portfolio will live at <b>{siteHostname(value)}</b></>
           : 'Type the name you want. Your address updates as you type.'}
       </p>
     </form>

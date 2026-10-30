@@ -29,10 +29,16 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { color-scheme: dark; background: var(--bg); }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font: 400 1.0625rem/1.6 var(--font-sans), "Segoe UI", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
 }
 a { color: inherit; text-decoration: none; }
 h1, h2, h3 { font-family: var(--font-display), system-ui, sans-serif; margin: 0; text-wrap: balance; }
@@ -195,7 +201,41 @@ textarea.ap-input { min-height: 120px; resize: vertical; line-height: 1.5; }
 .ap-auth .ap-input { min-height: 48px; }
 .ap-auth .ap-or { margin: 14px 0; }
 .ap-auth .ap-submit { margin-top: 20px; }
-.ap-auth .ap-status { margin: 10px 0 0; }
+ .ap-auth .ap-status { margin: 10px 0 0; }
+
+/* Signup confirmation: prominent, calm feedback that is easy to notice. */
+.ap-signup-success {
+  display: flex; align-items: flex-start; gap: 14px;
+  width: 100%; margin: 18px 0 0; padding: 18px 20px;
+  border: 1px solid rgba(126, 224, 181, .48); border-radius: 16px;
+  background: linear-gradient(115deg, rgba(126, 224, 181, .16), rgba(126, 224, 181, .07));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .12), 0 0 0 1px rgba(126, 224, 181, .04);
+  animation: ap-signup-notice-in .5s var(--ease) both;
+}
+.ap-signup-success-icon {
+  display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px;
+  margin-top: 1px; border-radius: 50%; background: #27b76d; color: #071b12;
+  font-size: 1.25rem; line-height: 1; font-weight: 900;
+  box-shadow: 0 0 0 0 rgba(39, 183, 109, .32);
+  animation: ap-signup-check .55s .12s var(--ease) both, ap-signup-glow 2.8s 1s ease-out infinite;
+}
+.ap-signup-success-copy { min-width: 0; }
+.ap-signup-success-copy strong { display: block; margin: 0 0 3px; color: #a9f2cf; font: 700 1.18rem/1.3 var(--font-display), system-ui, sans-serif; letter-spacing: -.015em; }
+.ap-signup-success-copy p { margin: 0; color: var(--ink); font-size: 1rem; line-height: 1.55; overflow-wrap: anywhere; }
+.ap-signup-success-copy p b { color: #fff; font-weight: 700; }
+.ap-signup-success-copy small { display: block; margin-top: 7px; color: #c2c0df; font-size: .9rem; line-height: 1.45; }
+@keyframes ap-signup-notice-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ap-signup-check { from { opacity: 0; transform: scale(.65); } 65% { opacity: 1; transform: scale(1.12); } to { transform: scale(1); } }
+@keyframes ap-signup-glow { 0% { box-shadow: 0 0 0 0 rgba(39, 183, 109, .28); } 65%, 100% { box-shadow: 0 0 0 9px rgba(39, 183, 109, 0); } }
+@media (max-width: 520px) {
+  .ap-signup-success { gap: 11px; padding: 15px; margin-top: 14px; }
+  .ap-signup-success-copy strong { font-size: 1.08rem; }
+  .ap-signup-success-copy p { font-size: .95rem; }
+  .ap-signup-success-copy small { font-size: .85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ap-signup-success, .ap-signup-success-icon { animation: none; }
+}
 .ap-row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0 14px; }
 .ap-field .ap-label { margin-top: 14px; }
 .ap-auth-aside { display: grid; place-items: center; padding: 48px; border-left: 1px solid var(--line); background: radial-gradient(70% 60% at 50% 40%, rgba(74, 61, 240, .4), transparent 70%), var(--bg-raise); }

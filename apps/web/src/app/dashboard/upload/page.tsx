@@ -10,7 +10,7 @@ import { asKind, confirmReplace, fmtWhen, kindLabel, type SiteKind } from '../..
 import { ArrowIcon, CheckIcon, ChevronLeftIcon, SuccessMark, UploadIcon } from '../../../components/app/Icons';
 import { PageHeader } from '../../../components/app/PageHeader';
 import { StorageMeter } from '../../../components/app/StorageMeter';
-import { siteUrl } from '../../../lib/site-url';
+import { siteHostname, siteUrl } from '../../../lib/site-url';
 
 type Result = { ok: true; bundle: Bundle; file: File } | { ok: false; message: string };
 type View = 1 | 2 | 3;
@@ -166,7 +166,7 @@ export default function UploadPage() {
             {view === 2 && picked && (
               <>
                 <h2 className="ap-h2">Review and publish</h2>
-                <p className="ap-note" style={{ margin: '0 0 14px' }}>Everything below goes live at <span className="ap-mono">{username || 'your address'}.akox.in</span>.</p>
+                <p className="ap-note" style={{ margin: '0 0 14px' }}>Everything below goes live at <span className="ap-mono">{siteHostname(username || 'your address')}</span>.</p>
                 <dl className="ap-facts">
                   <div><dt>File</dt><dd>{picked.file.name}</dd></div>
                   <div><dt>Files</dt><dd>{picked.bundle.files.length}</dd></div>
@@ -184,7 +184,7 @@ export default function UploadPage() {
             {view === 3 && (
               <div className="ap-celebrate" role="status">
                 <h2 className="ap-h2 ap-live"><SuccessMark />Your site is live</h2>
-                <p className="ap-live-url ap-mono">{username}.akox.in</p>
+                <p className="ap-live-url ap-mono">{siteHostname(username)}</p>
                 <p className="ap-note">On this computer it opens at /s/{username}.</p>
                 <div className="ap-actions">
                   <a className="ap-btn" href={siteUrl(username)} target="_blank" rel="noopener">Open my site</a>

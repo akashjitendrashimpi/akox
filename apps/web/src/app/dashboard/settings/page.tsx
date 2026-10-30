@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { getSupabase } from '../../../lib/supabase';
+import { siteHostname } from '../../../lib/site-url';
 import { planLabel } from '../../../lib/plan';
 import { LogoutIcon } from '../../../components/app/Icons';
 import { PageHeader } from '../../../components/app/PageHeader';
@@ -38,7 +39,7 @@ export default function SettingsPage() {
           {status === 'in' && user ? (
             <dl className="ap-facts">
               <div><dt>Email</dt><dd>{user.email}</dd></div>
-              <div><dt>Address</dt><dd>{user.username}.akox.in</dd></div>
+              <div><dt>Address</dt><dd>{siteHostname(user.username)}</dd></div>
               <div><dt>Plan</dt><dd>{planLabel(user.plan)}</dd></div>
             </dl>
           ) : (

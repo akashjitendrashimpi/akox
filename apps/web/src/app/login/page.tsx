@@ -62,6 +62,9 @@ export default function LoginPage() {
         <label className="ap-label" htmlFor="password">Password</label>
         <PasswordInput id="password" required autoComplete="current-password" value={password}
           onChange={(e) => setPassword(e.target.value)} />
+        <p style={{ margin: '9px 0 2px', textAlign: 'right', fontSize: '.92rem' }}>
+          <Link className="ap-textlink" href="/forgot-password">Forgot password?</Link>
+        </p>
         <Turnstile key={widgetKey} onToken={setCaptcha} />
         <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy || (captchaEnabled && !captcha)} aria-busy={busy}>{busy ? 'Please wait...' : 'Log in'}</button>
       </form>

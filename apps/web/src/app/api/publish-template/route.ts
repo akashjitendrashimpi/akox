@@ -1,5 +1,6 @@
 import { parsePortfolioRequest, renderPortfolio, type ParsedRequest } from '@akox/core';
 import { PublishInputError, runPublish } from '../../../lib/publish-flow';
+import { readSafeBody } from '../../../lib/safe-stream';
 
 export const runtime = 'nodejs';
 
@@ -11,12 +12,10 @@ export async function POST(req: Request): Promise<Response> {
     req,
     'template',
     async () => {
-      if (Number(req.headers.get('content-length') ?? 0) > 200_000) {
-        throw new PublishInputError('That is too much text.', 413);
-      }
+      const raw = await readSafeBody(req, 200_000);
       let body: unknown;
       try {
-        body = await req.json();
+        body = JSON.parse(new TextDecoder().decode(raw));
       } catch {
         throw new PublishInputError('Invalid request.');
       }

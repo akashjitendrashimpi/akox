@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { checkSlug } from '@akox/core';
+import { SITE_SUFFIX, siteHostname } from '../../lib/site-url';
 import { getSupabase } from '../../lib/supabase';
 import { AuthFrame } from '../../components/app/AuthFrame';
 
@@ -68,7 +69,7 @@ export default function OnboardingPage() {
           <input id="username" value={username} placeholder="yourname" maxLength={32} aria-label="Username"
             autoComplete="off" autoCapitalize="none" spellCheck={false} autoFocus
             onChange={(e) => { setUsername(e.target.value.toLowerCase()); setMsg(''); }} />
-          <span className="ap-address-suffix" aria-hidden="true">.akox.in</span>
+          <span className="ap-address-suffix" aria-hidden="true">{SITE_SUFFIX}</span>
         </label>
 
         <p className={hint ? 'ap-note bad ap-status' : looksGood ? 'ap-note ok ap-status' : 'ap-note ap-status'} role="status">

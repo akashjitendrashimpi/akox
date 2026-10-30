@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SITE_SUFFIX, siteHostname } from '../../lib/site-url';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import { ArrowIcon, ChevronLeftIcon, CloseIcon, CopyIcon, CheckIcon, ExternalIcon, SearchIcon } from './Icons';
 
@@ -212,7 +213,7 @@ export function ExploreView({ people }: { people: Person[] }) {
                           <span className="ap-pavatar" aria-hidden="true">{shown(p).charAt(0)}</span>
                           <span className="ap-pname">
                             <b>{mark(shown(p), q)}</b>
-                            <span className="ap-mono">{mark(p.username, q)}.akox.in</span>
+                            <span className="ap-mono">{mark(p.username, q)}{SITE_SUFFIX}</span>
                           </span>
                         </span>
                         <span className="ap-pbio">{p.bio || 'No bio yet.'}</span>
@@ -250,7 +251,7 @@ export function ExploreView({ people }: { people: Person[] }) {
             <div className="ap-viewer-body" key={person.id}>
               <span className="ap-viewer-avatar" aria-hidden="true">{shown(person).charAt(0)}</span>
               <h2 className="ap-viewer-name">{shown(person)}</h2>
-              <p className="ap-mono ap-viewer-addr">{person.username}.akox.in</p>
+              <p className="ap-mono ap-viewer-addr">{siteHostname(person.username)}</p>
               <p className="ap-viewer-bio">{person.bio || 'No bio yet.'}</p>
 
               <div className="ap-viewer-actions">

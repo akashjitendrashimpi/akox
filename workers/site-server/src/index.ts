@@ -24,7 +24,9 @@ const CACHE_MAX_BYTES = 5 * 1024 * 1024;
 function securityHeaders(env: Env): Record<string, string> {
   return {
     'X-Content-Type-Options': 'nosniff',
+    'X-XSS-Protection': '0',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
     'Access-Control-Allow-Origin': '*',
     'Content-Security-Policy': [
@@ -105,7 +107,7 @@ function candidates(pathname: string): string[] | null {
   }
   if (path.includes('\0') || path.includes('\\')) return null;
   const segs = path.split('/').filter(Boolean);
-  if (segs.some((s) => s === '.' || s === '..')) return null;
+  if (segs.some((s) => s === '.' || s === '..' || s.startsWith('.') || s === 'Thumbs.db')) return null;
   const clean = segs.join('/');
   if (clean === '') return ['index.html'];
   if (path.endsWith('/')) return [`${clean}/index.html`];
@@ -172,8 +174,19 @@ async function serve(
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Max-Age': '86400',
+        },
+      });
+    }
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD' } });
+      return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD, OPTIONS' } });
     }
     const target = parseTarget(new URL(request.url), env);
     if (!target) return page(env, 404, 'Not found', 'This address does not point to a portfolio.');

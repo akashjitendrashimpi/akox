@@ -5,11 +5,12 @@ import { FinalClaim } from '../components/landing/FinalClaim';
 import { Hero } from '../components/landing/Hero';
 import { LandingNav } from '../components/landing/LandingNav';
 import { Reveal } from '../components/landing/Reveal';
+import { siteHostname } from '../lib/site-url';
 
 const steps: { title: string; text: ReactNode }[] = [
   { title: 'Sign up', text: 'Create a free account with your email or Google.' },
   { title: 'Build your portfolio', text: 'Add your bio and projects, or upload a site you coded yourself.' },
-  { title: 'Share your link', text: <>Your portfolio goes live at <span className="lp-mono">yourname.akox.in</span>.</> },
+  { title: 'Share your link', text: <>Your portfolio goes live at <span className="lp-mono">{siteHostname('yourname')}</span>.</> },
 ];
 
 function FormArt() {

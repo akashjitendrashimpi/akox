@@ -1,10 +1,22 @@
 import { serviceClient, userFrom } from '../../../lib/server-auth';
+import { validateOrigin } from '../../../lib/publish-flow';
+import { checkRateLimit, getClientIp } from '../../../lib/rate-limit';
 
 export const runtime = 'nodejs';
 
 const json = (body: object, status = 200): Response => Response.json(body, { status });
 
 export async function POST(req: Request): Promise<Response> {
+  if (!validateOrigin(req)) {
+    return json({ error: 'Cross-origin request rejected for security.' }, 403);
+  }
+
+  const clientIp = getClientIp(req);
+  const rate = checkRateLimit(`rollback:${clientIp}`, 15, 60_000);
+  if (!rate.ok) {
+    return json({ error: 'Too many requests. Please wait a moment.' }, 429);
+  }
+
   const sb = serviceClient();
   if (!sb) return json({ error: 'Server is not set up: the secret key is missing.' }, 500);
   const user = await userFrom(req, sb);

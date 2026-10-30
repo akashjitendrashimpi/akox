@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
+import { SITE_SUFFIX } from '../../lib/site-url';
 
 const TILES = ['t1', 't2', 't3'] as const;
 /** Particle positions: left %, top %, depth (cqw), size (em). Fixed, so server and browser render the same thing. */
@@ -114,7 +115,7 @@ export function Stack3D({ handle, label }: { handle: string; label: string }) {
                 <span className="lp-dots"><i /><i /><i /></span>
                 <span className="lp-url">
                   <span className="lp-lock" />
-                  <span className="lp-url-text">{handle}<span className="lp-url-dim">.akox.in</span></span>
+                  <span className="lp-url-text">{handle}<span className="lp-url-dim">{SITE_SUFFIX}</span></span>
                 </span>
               </div>
               <div className="lp-site">

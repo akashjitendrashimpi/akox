@@ -15,7 +15,7 @@ import { ImageHint } from './ImageHint';
 import { PageHeader } from './PageHeader';
 import { ScaledFrame } from './ScaledFrame';
 import { useShellUser } from './Shell';
-import { siteUrl } from '../../lib/site-url';
+import { siteHostname, siteUrl } from '../../lib/site-url';
 import { TemplatePicker } from './TemplatePicker';
 
 const decode = (d: Uint8Array | undefined): string => new TextDecoder().decode(d);
@@ -214,7 +214,7 @@ export function SiteBuilder() {
 
   const signedIn = status === 'in' && Boolean(user);
   const canPublish = signedIn && restored && !busy && left > 0 && errorCount === 0 && parsed.ok;
-  const address = user?.username ? `${user.username}.akox.in` : 'your address';
+  const address = user?.username ? siteHostname(user.username) : 'your address';
 
   return (
     <>

@@ -3,6 +3,24 @@ import { limitsFor, uploadBundle, type Bundle, type Limits } from '@akox/core';
 import { COOLDOWN_SECONDS, DAILY_LIMIT } from './limits';
 import { serviceClient, userFrom } from './server-auth';
 import { supabaseStore } from './storage';
+import { checkRateLimit, getClientIp } from './rate-limit';
+
+/** Origin verification for CSRF mitigation on state-modifying endpoints */
+export function validateOrigin(req: Request): boolean {
+  const origin = req.headers.get('origin');
+  if (!origin) return true;
+  try {
+    const originHost = new URL(origin).host.toLowerCase();
+    const host = req.headers.get('host')?.toLowerCase();
+    if (host && originHost === host) return true;
+    const allowedDomain = (process.env.NEXT_PUBLIC_SITE_DOMAIN || 'akox.in').toLowerCase();
+    if (originHost === allowedDomain || originHost.endsWith(`.${allowedDomain}`)) return true;
+    if (originHost.startsWith('localhost') || originHost.startsWith('127.0.0.1')) return true;
+  } catch {
+    return false;
+  }
+  return false;
+}
 
 /** What produced the live site: an uploaded zip (custom website) or a template. */
 export type PublishKind = 'zip' | 'template';
@@ -30,6 +48,16 @@ export async function runPublish(
   /** Runs after the site is live. A failure here never undoes the publish. */
   onPublished?: (done: { userId: string; sb: SupabaseClient }) => Promise<void>,
 ): Promise<Response> {
+  if (!validateOrigin(req)) {
+    return json({ error: 'Cross-origin request rejected for security.' }, 403);
+  }
+
+  const clientIp = getClientIp(req);
+  const rate = checkRateLimit(`publish:${clientIp}`, 30, 60_000);
+  if (!rate.ok) {
+    return json({ error: 'Too many requests. Please wait a moment.' }, 429);
+  }
+
   const sb = serviceClient();
   if (!sb) return json({ error: 'Server is not set up: the secret key is missing.' }, 500);
   const user = await userFrom(req, sb);

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { getSupabase } from '../../lib/supabase';
+import { siteHostname } from '../../lib/site-url';
 import { signInWithGoogle } from '../../lib/auth';
 import { AuthFrame } from '../../components/app/AuthFrame';
 import { Turnstile, captchaEnabled } from '../../components/Turnstile';
@@ -75,8 +76,8 @@ export default function SignupPage() {
   }
 
   const lead = wanted
-    ? <>Free forever to start. Next, you will confirm <span className="ap-mono">{wanted}.akox.in</span> as your address.</>
-    : 'Free forever to start. Your portfolio goes live at yourname.akox.in.';
+    ? <>Free forever to start. Next, you will confirm <span className="ap-mono">{siteHostname(wanted)}</span> as your address.</>
+    : `Free forever to start. Your portfolio goes live at ${siteHostname('yourname')}.`;
 
   return (
     <AuthFrame title="Create your account" lead={lead} address={wanted}
@@ -115,7 +116,18 @@ export default function SignupPage() {
         <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy || (captchaEnabled && !captcha)} aria-busy={busy}>{busy ? 'Creating...' : 'Create account'}</button>
       </form>
 
-      <p className={msg?.bad ? 'ap-note bad ap-status' : 'ap-note ap-status'} role="status">{msg?.text ?? ' '}</p>
+      {msg && !msg.bad ? (
+        <div className="ap-signup-success" role="status" aria-live="polite">
+          <span className="ap-signup-success-icon" aria-hidden="true">✓</span>
+          <div className="ap-signup-success-copy">
+            <strong>Check your inbox</strong>
+            <p>We sent a confirmation link to <b>{email}</b>. Open the email and click the link to activate your AKOX account.</p>
+            <small>Can’t find it? Check your spam or promotions folder.</small>
+          </div>
+        </div>
+      ) : (
+        <p className="ap-note bad ap-status" role={msg?.bad ? 'alert' : 'status'} aria-live="polite">{msg?.text ?? ' '}</p>
+      )}
     </AuthFrame>
   );
 }
