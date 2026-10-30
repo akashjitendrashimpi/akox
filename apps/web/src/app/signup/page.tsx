@@ -6,6 +6,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { getSupabase } from '../../lib/supabase';
 import { signInWithGoogle } from '../../lib/auth';
 import { AuthFrame } from '../../components/app/AuthFrame';
+import { Turnstile, captchaEnabled } from '../../components/Turnstile';
 import { PasswordInput } from '../../components/app/Fields';
 
 const ready = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -18,6 +19,9 @@ export default function SignupPage() {
   const [again, setAgain] = useState('');
   const [msg, setMsg] = useState<{ text: string; bad: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [captcha, setCaptcha] = useState('');
+  const [widgetKey, setWidgetKey] = useState(0);
+  useEffect(() => { if (msg?.bad) { setCaptcha(''); setWidgetKey((k) => k + 1); } }, [msg]);
   const [wanted, setWanted] = useState('');
 
   useEffect(() => {
@@ -53,7 +57,7 @@ export default function SignupPage() {
     const { data, error } = await sb.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name.trim() }, emailRedirectTo: `${window.location.origin}/dashboard` },
+      options: { data: { full_name: name.trim() }, emailRedirectTo: `${window.location.origin}/dashboard`, captchaToken: captcha || undefined },
     });
     setBusy(false);
 
@@ -107,7 +111,8 @@ export default function SignupPage() {
               onChange={(e) => setAgain(e.target.value)} />
           </div>
         </div>
-        <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy} aria-busy={busy}>{busy ? 'Creating...' : 'Create account'}</button>
+        <Turnstile key={widgetKey} onToken={setCaptcha} />
+        <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy || (captchaEnabled && !captcha)} aria-busy={busy}>{busy ? 'Creating...' : 'Create account'}</button>
       </form>
 
       <p className={msg?.bad ? 'ap-note bad ap-status' : 'ap-note ap-status'} role="status">{msg?.text ?? ' '}</p>

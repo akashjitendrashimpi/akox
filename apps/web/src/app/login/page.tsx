@@ -6,6 +6,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { getSupabase } from '../../lib/supabase';
 import { signInWithGoogle } from '../../lib/auth';
 import { AuthFrame } from '../../components/app/AuthFrame';
+import { Turnstile, captchaEnabled } from '../../components/Turnstile';
 import { PasswordInput } from '../../components/app/Fields';
 
 const ready = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -16,6 +17,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
+  const [captcha, setCaptcha] = useState('');
+  const [widgetKey, setWidgetKey] = useState(0);
+  useEffect(() => { if (msg) { setCaptcha(''); setWidgetKey((k) => k + 1); } }, [msg]);
 
   useEffect(() => {
     void getSupabase()?.auth.getSession().then(({ data }) => {
@@ -29,7 +33,7 @@ export default function LoginPage() {
     if (!sb) return;
     setBusy(true);
     setMsg('');
-    const { error } = await sb.auth.signInWithPassword({ email, password });
+    const { error } = await sb.auth.signInWithPassword({ email, password, options: { captchaToken: captcha || undefined } });
     setBusy(false);
     if (error) {
       setMsg(error.message === 'Invalid login credentials' ? 'Wrong email or password. New here? Create an account below.' : error.message);
@@ -58,7 +62,8 @@ export default function LoginPage() {
         <label className="ap-label" htmlFor="password">Password</label>
         <PasswordInput id="password" required autoComplete="current-password" value={password}
           onChange={(e) => setPassword(e.target.value)} />
-        <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy} aria-busy={busy}>{busy ? 'Please wait...' : 'Log in'}</button>
+        <Turnstile key={widgetKey} onToken={setCaptcha} />
+        <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy || (captchaEnabled && !captcha)} aria-busy={busy}>{busy ? 'Please wait...' : 'Log in'}</button>
       </form>
 
       <p className={msg ? 'ap-note bad ap-status' : 'ap-note ap-status'} role="status">{msg || ' '}</p>
