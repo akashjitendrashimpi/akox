@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getSupabase } from '../../lib/supabase';
 import { MobileMenu } from '../MobileMenu';
+import { Logo } from '../brand/Logo';
 
 export function LandingNav() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -25,7 +26,7 @@ export function LandingNav() {
       <div className="lp-wrap lp-nav-in">
         <div className="ap-nav-l">
           <MobileMenu title="Menu">
-            <Link className="ap-logo ap-drawer-logo" href="/">akox</Link>
+            <Link className="ap-logo ap-drawer-logo" href="/"><Logo /></Link>
             <nav className="ap-mm-links" aria-label="Menu">
               <a href="#how">How it works</a>
               <Link href="/explore">Explore</Link>
@@ -37,7 +38,7 @@ export function LandingNav() {
               )}
             </nav>
           </MobileMenu>
-          <Link className="lp-logo" href="/">akox</Link>
+          <Link className="lp-logo" href="/"><Logo /></Link>
         </div>
         <nav className="lp-nav-links" aria-label="Primary">
           <a className="lp-link lp-hide-sm" href="#how">How it works</a>

@@ -1,7 +1,6 @@
 'use client';
 
 import type { ChangeEvent } from 'react';
-import { SITE_SUFFIX, siteHostname } from '../../lib/site-url';
 
 /** Lowercase letters, digits and hyphens only, so the preview always looks like a real subdomain. */
 export function cleanHandle(raw: string) {
@@ -20,7 +19,7 @@ type Props = {
  * The address field is the page's main interaction. A plain GET form, so it still
  * works without JavaScript: it opens /signup?u=<name>.
  */
-export function ClaimForm({ value, onChange, placeholder, idPrefix, cta = 'Claim your address' }: Props) {
+export function ClaimForm({ value, onChange, placeholder, idPrefix, cta = 'Check my name' }: Props) {
   const inputId = `${idPrefix}-handle`;
   const hintId = `${idPrefix}-hint`;
   // Size the input to what is shown (typed text, or the sample name) so ".akox.in" sits right after it.
@@ -30,7 +29,7 @@ export function ClaimForm({ value, onChange, placeholder, idPrefix, cta = 'Claim
     <form className="lp-claim" action="/signup" method="get">
       <label className="lp-claim-field" htmlFor={inputId}>
         <span className="lp-lock" aria-hidden="true" />
-        <span className="lp-sr">Choose your address</span>
+        <span className="lp-sr">Your name, for your address</span>
         <input
           id={inputId}
           name="u"
@@ -45,13 +44,17 @@ export function ClaimForm({ value, onChange, placeholder, idPrefix, cta = 'Claim
           aria-describedby={hintId}
           style={{ width: `${width}ch` }}
         />
-        <span className="lp-claim-suffix" aria-hidden="true">{SITE_SUFFIX}</span>
+        <span className="lp-claim-suffix" aria-hidden="true">.akox.in</span>
       </label>
       <button className="lp-btn" type="submit">{cta}</button>
       <p id={hintId} className="lp-hint" aria-live="polite">
-        {value
-          ? <>Your portfolio will live at <b>{siteHostname(value)}</b></>
-          : 'Type the name you want. Your address updates as you type.'}
+        {!value
+          ? 'Letters, numbers and hyphens. Takes five seconds.'
+          : value.length < 3
+            ? 'Use 3 or more characters.'
+            : /^-|-$/.test(value)
+              ? 'A name cannot start or end with a hyphen.'
+              : <>Looks good: <b>{value}.akox.in</b>. We check it is free when you sign up.</>}
       </p>
     </form>
   );

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { getSupabase } from '../lib/supabase';
 import { GearIcon } from './app/Icons';
 import { MobileMenu } from './MobileMenu';
+import { Logo } from './brand/Logo';
 
 /** Top bar for public pages (Explore, public portfolios). The signed-in app lives in the dashboard shell. */
 export function AppBar() {
@@ -32,7 +33,7 @@ export function AppBar() {
         {/* Signed-in people land on their dashboard; visitors land on the home page. */}
         <div className="ap-nav-l">
           <MobileMenu title="Menu">
-            <Link className="ap-logo ap-drawer-logo" href={loggedIn ? '/dashboard' : '/'}>akox</Link>
+            <Link className="ap-logo ap-drawer-logo" href={loggedIn ? '/dashboard' : '/'}><Logo /></Link>
             <nav className="ap-mm-links" aria-label="Menu">
               {loggedIn ? (
                 <>
@@ -49,7 +50,7 @@ export function AppBar() {
               )}
             </nav>
           </MobileMenu>
-          <Link className="ap-logo" href={loggedIn ? '/dashboard' : '/'}>akox</Link>
+          <Link className="ap-logo" href={loggedIn ? '/dashboard' : '/'}><Logo /></Link>
         </div>
         <nav className="ap-links ap-hide-sm" aria-label="Primary">
           {loggedIn ? (

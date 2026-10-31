@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { checkSlug } from '@akox/core';
-import { SITE_SUFFIX, siteHostname } from '../../lib/site-url';
 import { getSupabase } from '../../lib/supabase';
 import { AuthFrame } from '../../components/app/AuthFrame';
 
@@ -38,7 +37,7 @@ export default function OnboardingPage() {
 
   const problem = username ? checkSlug(username) : null;
   const hint =
-    problem === 'FORMAT' ? 'Use 3 to 32 letters, numbers or hyphens.' :
+    problem === 'FORMAT' ? 'Letters, numbers and hyphens only, 3 to 32 characters. No spaces.' :
     problem === 'RESERVED' ? 'That name is reserved. Try another.' : msg;
   const looksGood = Boolean(username) && !problem && !msg;
 
@@ -50,7 +49,7 @@ export default function OnboardingPage() {
     const { error } = await sb.from('profiles').insert({ id: userId, username, display_name: fullName || username });
     setBusy(false);
     if (error) {
-      setMsg(error.code === '23505' ? 'That name is taken. Try another.' : error.message);
+      setMsg(error.code === '23505' ? 'That name is taken. Try yourname-dev or yourname26.' : error.message);
     } else {
       try { localStorage.removeItem('akox:address'); } catch { /* ignore */ }
       router.replace('/dashboard');
@@ -60,7 +59,7 @@ export default function OnboardingPage() {
   return (
     <AuthFrame
       title="Choose your address"
-      lead={`${fullName ? `Welcome, ${fullName}. ` : ''}This will be the web address of your portfolio.`}
+      lead={`${fullName ? `Welcome, ${fullName}. ` : ''}This is your web address. Pick the one you want people to see.`}
       address={username}
     >
       <form onSubmit={save}>
@@ -69,11 +68,11 @@ export default function OnboardingPage() {
           <input id="username" value={username} placeholder="yourname" maxLength={32} aria-label="Username"
             autoComplete="off" autoCapitalize="none" spellCheck={false} autoFocus
             onChange={(e) => { setUsername(e.target.value.toLowerCase()); setMsg(''); }} />
-          <span className="ap-address-suffix" aria-hidden="true">{SITE_SUFFIX}</span>
+          <span className="ap-address-suffix" aria-hidden="true">.akox.in</span>
         </label>
 
         <p className={hint ? 'ap-note bad ap-status' : looksGood ? 'ap-note ok ap-status' : 'ap-note ap-status'} role="status">
-          {hint || (looksGood ? 'This format works. We check that it is free when you save.' : ' ')}
+          {hint || (looksGood ? 'Looks good. We check it is free when you save.' : ' ')}
         </p>
 
         <p className="ap-callout">
@@ -84,7 +83,7 @@ export default function OnboardingPage() {
         </p>
 
         <button className="ap-btn ap-btn-wide" aria-busy={busy} disabled={!userId || !username || Boolean(problem) || busy}>
-          {busy ? 'Saving...' : 'Save my address'}
+          {busy ? 'Working...' : 'Claim ' + (username || 'my address') + '.akox.in'}
         </button>
       </form>
     </AuthFrame>

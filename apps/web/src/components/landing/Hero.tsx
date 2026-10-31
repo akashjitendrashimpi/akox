@@ -55,6 +55,7 @@ export function Hero() {
     <section className="lp-hero" aria-labelledby="hero-h">
       <div className="lp-wrap lp-hero-grid">
         <div className="lp-hero-copy">
+          <p className="lp-eyebrow">Free during early access</p>
           <h1 id="hero-h">
             {HEADLINE.split(' ').map((w, i) => (
               <Fragment key={i}>
@@ -63,12 +64,12 @@ export function Hero() {
             ))}
           </h1>
           <p className="lp-lead">
-            A free portfolio website for every student and freelancer, at your own address.
+            Get <span className="lp-mono">yourname.akox.in</span>. Fill a short form, or upload the site you built. AI-made code is welcome.
           </p>
           <ClaimForm idPrefix="hero" value={name} onChange={setName} placeholder={sample} />
           <p className="lp-alt">
-            <span>Free to use. Sign up with email or Google.</span>
-            <Link className="lp-textlink" href="/explore">Explore portfolios</Link>
+            <span>Free during early access &middot; Made in India</span>
+            <Link className="lp-textlink" href="/explore">See other sites</Link>
           </p>
         </div>
         {/* The 3D object sits first on small screens and beside the headline on wide ones. */}

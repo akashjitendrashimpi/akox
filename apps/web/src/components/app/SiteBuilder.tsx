@@ -1,5 +1,6 @@
 'use client';
 
+import { ShareActions } from '../brand/ShareActions';
 import Link from 'next/link';
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { PORTFOLIO_LIMITS as L, parsePortfolioRequest, renderPortfolio, type PortfolioData } from '@akox/core';
@@ -15,7 +16,6 @@ import { ImageHint } from './ImageHint';
 import { PageHeader } from './PageHeader';
 import { ScaledFrame } from './ScaledFrame';
 import { useShellUser } from './Shell';
-import { siteHostname, siteUrl } from '../../lib/site-url';
 import { TemplatePicker } from './TemplatePicker';
 
 const decode = (d: Uint8Array | undefined): string => new TextDecoder().decode(d);
@@ -62,26 +62,13 @@ export function SiteBuilder() {
   // ---- load the draft once we know who is signed in; fall back to their profile name
   useEffect(() => {
     if (status !== 'in' || !user || restored) return;
-    let cancelled = false;
-    void (async () => {
-      let next: Draft | null = null;
-      try {
-        const raw = localStorage.getItem(draftKey(user.id));
-        if (raw) next = sanitizeDraft(JSON.parse(raw));
-      } catch { /* unreadable draft: start fresh */ }
-      // Nothing saved on this device (new phone, cleared browser): reopen what was last published as a template.
-      const sb = getSupabase();
-      if (!next && sb) {
-        const { data } = await sb.from('site_settings').select('template_id, template_data').eq('owner_id', user.id).maybeSingle();
-        if (data && typeof data.template_data === 'object' && data.template_data !== null) {
-          next = sanitizeDraft({ ...(data.template_data as object), template: data.template_id });
-        }
-      }
-      if (cancelled) return;
-      setDraft(next ?? blankDraft(user.name));
-      setRestored(true);
-    })();
-    return () => { cancelled = true; };
+    let next: Draft | null = null;
+    try {
+      const raw = localStorage.getItem(draftKey(user.id));
+      if (raw) next = sanitizeDraft(JSON.parse(raw));
+    } catch { /* unreadable draft: start fresh */ }
+    setDraft(next ?? blankDraft(user.name));
+    setRestored(true);
   }, [status, user, restored]);
 
   // ---- save the draft on this device, a moment after typing stops
@@ -159,27 +146,6 @@ export function SiteBuilder() {
     setTouched(new Set()); setSubmitted(false); setError(''); setLive(false);
   }
 
-  // ---- reuse the bio and projects from the Profile and projects page
-  async function importProfile() {
-    const sb = getSupabase();
-    if (!sb || !user) return;
-    const [{ data: p }, { data: list }] = await Promise.all([
-      sb.from('profiles').select('display_name, bio').eq('id', user.id).maybeSingle(),
-      sb.from('projects').select('title, description, url').eq('owner_id', user.id).order('created_at'),
-    ]);
-    if (!p) { setError('Could not read your profile. Please try again.'); return; }
-    const hasText = draft.bio.trim() !== '' || draft.projects.some((r) => r.title.trim() !== '');
-    if (hasText && !window.confirm('Replace the bio and projects on this page with the ones from your profile?')) return;
-    const next = sanitizeDraft({
-      ...toRequest(draft).data,
-      template: draft.template,
-      name: draft.name.trim() !== '' ? draft.name : String(p.display_name ?? ''),
-      bio: String(p.bio ?? ''),
-      projects: (list ?? []).map((r) => ({ title: r.title, description: r.description, url: r.url ?? '' })),
-    });
-    if (next) { setDraft(next); setTouched(new Set()); setSubmitted(false); setError(''); }
-  }
-
   // ---- publish: only what passed validation is sent, never the raw form
   async function publish() {
     setSubmitted(true); setError('');
@@ -214,7 +180,7 @@ export function SiteBuilder() {
 
   const signedIn = status === 'in' && Boolean(user);
   const canPublish = signedIn && restored && !busy && left > 0 && errorCount === 0 && parsed.ok;
-  const address = user?.username ? siteHostname(user.username) : 'your address';
+  const address = user?.username ? `${user.username}.akox.in` : 'your address';
 
   return (
     <>
@@ -234,10 +200,6 @@ export function SiteBuilder() {
 
           <section className="ap-bsec" aria-labelledby="b-you">
             <h2 className="ap-h2" id="b-you">2. About you</h2>
-            <p className="ap-note">
-              <button type="button" className="ap-btn ap-btn-ghost ap-btn-sm" onClick={() => void importProfile()}>Fill in from my profile</button>
-              {' '}Uses your name, bio and projects from the Profile and projects page.
-            </p>
             <Field id="f-name" label="Name (required)" count={draft.name.length} max={L.name} error={show('name')}>
               <input id="f-name" className="ap-input" value={draft.name} maxLength={L.name} autoComplete="name" required
                 aria-invalid={Boolean(show('name'))} aria-describedby={describe('f-name', show('name'))}
@@ -354,13 +316,14 @@ export function SiteBuilder() {
             <h2 className="ap-h2" id="b-pub">6. Publish</h2>
             {live ? (
               <div className="ap-celebrate" role="status">
-                <h3 className="ap-h2 ap-live"><SuccessMark />Your site is live</h3>
+                <h3 className="ap-h2 ap-live"><SuccessMark />It is live. &#9650;</h3>
                 <p className="ap-live-url ap-mono">{address}</p>
                 <p className="ap-note">On this computer it opens at /s/{user?.username}.</p>
                 <div className="ap-actions">
-                  <a className="ap-btn" href={siteUrl(user?.username ?? '')} target="_blank" rel="noopener">Open my site</a>
+                  <a className="ap-btn" href={'/s/' + (user?.username ?? '') + '/'} target="_blank" rel="noopener">Open my site</a>
                   <button type="button" className="ap-btn ap-btn-ghost" onClick={() => setLive(false)}>Keep editing</button>
                 </div>
+                {user?.username && <ShareActions address={address} />}
               </div>
             ) : (
               <>

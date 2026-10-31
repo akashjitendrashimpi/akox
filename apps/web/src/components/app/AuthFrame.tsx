@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { SiteMock } from './SiteMock';
+import { Logo } from '../brand/Logo';
 
 type Props = {
   title: string;
@@ -18,7 +19,7 @@ export function AuthFrame({ title, lead, address = '', corner, children }: Props
     <div className="ap-auth">
       <div className="ap-auth-main">
         <div className="ap-auth-top">
-          <Link className="ap-logo" href="/">akox</Link>
+          <Link className="ap-logo" href="/"><Logo /></Link>
           {corner ? <p className="ap-auth-corner">{corner}</p> : null}
         </div>
         <div className="ap-auth-form">

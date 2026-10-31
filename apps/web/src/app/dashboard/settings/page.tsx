@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { getSupabase } from '../../../lib/supabase';
-import { siteHostname } from '../../../lib/site-url';
 import { planLabel } from '../../../lib/plan';
 import { LogoutIcon } from '../../../components/app/Icons';
 import { PageHeader } from '../../../components/app/PageHeader';
@@ -26,7 +25,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Settings" lead="Choose how AKOX looks and manage your account." />
+      <PageHeader title="Settings" lead="Choose how Akox looks and manage your account." />
       <div className="ap-settings">
         <section className="ap-panel ap-rise" style={{ '--i': 0 } as React.CSSProperties} aria-labelledby="set-look">
           <h2 className="ap-h2" id="set-look">Appearance</h2>
@@ -39,7 +38,7 @@ export default function SettingsPage() {
           {status === 'in' && user ? (
             <dl className="ap-facts">
               <div><dt>Email</dt><dd>{user.email}</dd></div>
-              <div><dt>Address</dt><dd>{siteHostname(user.username)}</dd></div>
+              <div><dt>Address</dt><dd>{user.username}.akox.in</dd></div>
               <div><dt>Plan</dt><dd>{planLabel(user.plan)}</dd></div>
             </dl>
           ) : (

@@ -5,12 +5,14 @@ import { FinalClaim } from '../components/landing/FinalClaim';
 import { Hero } from '../components/landing/Hero';
 import { LandingNav } from '../components/landing/LandingNav';
 import { Reveal } from '../components/landing/Reveal';
-import { siteHostname } from '../lib/site-url';
+import { Faq, FAQ } from '../components/landing/Faq';
+import { Showcase } from '../components/landing/Showcase';
+import { SiteFooter } from '../components/brand/SiteFooter';
 
 const steps: { title: string; text: ReactNode }[] = [
-  { title: 'Sign up', text: 'Create a free account with your email or Google.' },
-  { title: 'Build your portfolio', text: 'Add your bio and projects, or upload a site you coded yourself.' },
-  { title: 'Share your link', text: <>Your portfolio goes live at <span className="lp-mono">{siteHostname('yourname')}</span>.</> },
+  { title: 'Claim your name', text: <>Type it. If it is free, it can be yours: <span className="lp-mono">yourname.akox.in</span>.</> },
+  { title: 'Add your work', text: 'Fill a short form, or upload your own site.' },
+  { title: 'Share the link', text: 'Send it to anyone. Put it on LinkedIn, your resume or your WhatsApp status.' },
 ];
 
 function FormArt() {
@@ -52,39 +54,20 @@ function GalleryArt() {
 }
 
 export default function Home() {
+  const faqLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.plain } })),
+  };
   return (
     <div className="lp">
       <LandingNav />
       <main id="main">
         <Hero />
 
-        <section className="lp-sec" aria-labelledby="ways-h">
-          <Reveal className="lp-wrap">
-            <h2 id="ways-h">Build it your way.</h2>
-            <div className="lp-ways">
-              <article>
-                <FormArt />
-                <h3>Fill in a form.</h3>
-                <p>Add your bio and projects. No code, nothing to set up.</p>
-              </article>
-              <article>
-                <CodeArt />
-                <h3>Bring your own code.</h3>
-                <p>Upload a site you wrote yourself or had AI generate, from a simple page to a full 3D scene.</p>
-              </article>
-              <article>
-                <GalleryArt />
-                <h3>Browse the gallery.</h3>
-                <p>See portfolios other people built, in a public gallery styled like GitHub.</p>
-                <Link className="lp-textlink" href="/explore">Explore portfolios</Link>
-              </article>
-            </div>
-          </Reveal>
-        </section>
-
         <section className="lp-sec" id="how" aria-labelledby="how-h">
           <Reveal className="lp-wrap">
-            <h2 id="how-h">Live in three steps.</h2>
+            <h2 id="how-h">Three steps. No tutorial.</h2>
             <ol className="lp-steps" role="list">
               {steps.map((s) => (
                 <li key={s.title}>
@@ -96,24 +79,56 @@ export default function Home() {
           </Reveal>
         </section>
 
+        <section className="lp-sec" id="ways" aria-labelledby="ways-h">
+          <Reveal className="lp-wrap">
+            <h2 id="ways-h">Your site. Your way.</h2>
+            <div className="lp-ways lp-ways-2">
+              <article>
+                <FormArt />
+                <h3>Use the form</h3>
+                <p>No code. Pick a look, add your name, bio and projects, and watch the page appear. Done in minutes.</p>
+                <p className="lp-chips"><span>Clean</span><span>Midnight</span><span>Studio</span></p>
+                <Link className="lp-textlink" href="/signup">Build with the form</Link>
+              </article>
+              <article>
+                <CodeArt />
+                <h3>Bring your own code</h3>
+                <p>Built it yourself, or had AI build it? Zip it and upload it. It goes live at your address with your design untouched.</p>
+                <p className="lp-small">Free plan: up to 15 MB, 100 files. Videos go on YouTube or Vimeo.</p>
+                <Link className="lp-textlink" href="/signup">Upload my site</Link>
+              </article>
+            </div>
+            <p className="lp-foot-note">One live site per person. Publish a new one and it replaces the old one. The previous version is one click away.</p>
+          </Reveal>
+        </section>
+
+        <section className="lp-sec" id="examples" aria-labelledby="ex-h">
+          <Reveal className="lp-wrap">
+            <h2 id="ex-h">See your name on it.</h2>
+            <p className="lp-sub">This is what the form makes. Type your name and these update.</p>
+            <Showcase />
+          </Reveal>
+        </section>
+
+        <section className="lp-sec" id="faq" aria-labelledby="faq-h">
+          <Reveal className="lp-wrap">
+            <h2 id="faq-h">Questions, answered.</h2>
+            <Faq />
+          </Reveal>
+        </section>
+
         <section className="lp-sec lp-final" aria-labelledby="final-h">
           <Reveal className="lp-wrap">
-            <h2 id="final-h">Your address is one sign-up away.</h2>
+            <h2 id="final-h">Your name is waiting.</h2>
+            <p className="lp-sub">Check if it is free. It takes five seconds.</p>
             <FinalClaim />
+            <p className="lp-small">Free during early access.</p>
           </Reveal>
         </section>
       </main>
 
-      <footer>
-        <div className="lp-wrap lp-foot">
-          <span>AKOX. Built in India.</span>
-          <nav aria-label="Footer">
-            <Link href="/explore">Explore</Link>
-            <Link href="/login">Log in</Link>
-            <Link href="/signup">Sign up</Link>
-          </nav>
-        </div>
-      </footer>
+      <SiteFooter landing />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
     </div>
   );
 }

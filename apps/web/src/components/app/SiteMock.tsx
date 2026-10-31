@@ -1,5 +1,3 @@
-import { SITE_SUFFIX } from '../../lib/site-url';
-
 type Project = { title: string; description?: string };
 
 type Props = {
@@ -21,7 +19,7 @@ export function SiteMock({ username, name, bio, projects }: Props) {
         <span className="ap-dots"><i /><i /><i /></span>
         <span className="ap-url">
           <span className="ap-lock" />
-          <span>{handle}<span className="ap-url-dim">{SITE_SUFFIX}</span></span>
+          <span>{handle}<span className="ap-url-dim">.akox.in</span></span>
         </span>
       </div>
       <div className="ap-mock-body">

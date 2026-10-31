@@ -4,10 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { getSupabase } from '../../lib/supabase';
-import { siteHostname } from '../../lib/site-url';
 import { signInWithGoogle } from '../../lib/auth';
 import { AuthFrame } from '../../components/app/AuthFrame';
-import { Turnstile, captchaEnabled } from '../../components/Turnstile';
 import { PasswordInput } from '../../components/app/Fields';
 
 const ready = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -20,9 +18,6 @@ export default function SignupPage() {
   const [again, setAgain] = useState('');
   const [msg, setMsg] = useState<{ text: string; bad: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [captcha, setCaptcha] = useState('');
-  const [widgetKey, setWidgetKey] = useState(0);
-  useEffect(() => { if (msg?.bad) { setCaptcha(''); setWidgetKey((k) => k + 1); } }, [msg]);
   const [wanted, setWanted] = useState('');
 
   useEffect(() => {
@@ -49,25 +44,25 @@ export default function SignupPage() {
     e.preventDefault();
     const sb = getSupabase();
     if (!sb) return;
-    if (name.trim().length < 2) return setMsg({ text: 'Please enter your name.', bad: true });
-    if (password.length < 8) return setMsg({ text: 'Your password needs at least 8 characters.', bad: true });
-    if (password !== again) return setMsg({ text: 'The two passwords do not match.', bad: true });
+    if (name.trim().length < 2) return setMsg({ text: 'Add your name, 2 or more characters.', bad: true });
+    if (password.length < 8) return setMsg({ text: 'Use at least 8 characters for your password.', bad: true });
+    if (password !== again) return setMsg({ text: 'The two passwords do not match. Try again.', bad: true });
 
     setBusy(true);
     setMsg(null);
     const { data, error } = await sb.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name.trim() }, emailRedirectTo: `${window.location.origin}/dashboard`, captchaToken: captcha || undefined },
+      options: { data: { full_name: name.trim() }, emailRedirectTo: `${window.location.origin}/dashboard` },
     });
     setBusy(false);
 
     if (error) return setMsg({ text: error.message, bad: true });
     if (data.user && data.user.identities?.length === 0) {
-      return setMsg({ text: 'An account with this email already exists. Please log in.', bad: true });
+      return setMsg({ text: 'That email already has an account. Log in instead.', bad: true });
     }
     if (data.session) router.replace('/dashboard');
-    else setMsg({ text: 'Almost done. Check your email and click the link to confirm your account.', bad: false });
+    else setMsg({ text: 'Check your inbox. We sent you a link to confirm your email.', bad: false });
   }
 
   async function google() {
@@ -76,11 +71,11 @@ export default function SignupPage() {
   }
 
   const lead = wanted
-    ? <>Free forever to start. Next, you will confirm <span className="ap-mono">{siteHostname(wanted)}</span> as your address.</>
-    : `Free forever to start. Your portfolio goes live at ${siteHostname('yourname')}.`;
+    ? <>Free during early access. Next, you will confirm <span className="ap-mono">{wanted}.akox.in</span> as your address.</>
+    : 'Free during early access. Your site goes live at yourname.akox.in.';
 
   return (
-    <AuthFrame title="Create your account" lead={lead} address={wanted}
+    <AuthFrame title={wanted ? `Claim ${wanted}.akox.in` : 'Claim your name'} lead={lead} address={wanted}
       corner={<>Have an account? <Link className="ap-textlink" href="/login">Log in</Link></>}>
       {!ready && <p className="ap-note bad" role="alert">Sign up is not connected yet. Check your .env.local file.</p>}
 
@@ -112,22 +107,10 @@ export default function SignupPage() {
               onChange={(e) => setAgain(e.target.value)} />
           </div>
         </div>
-        <Turnstile key={widgetKey} onToken={setCaptcha} />
-        <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy || (captchaEnabled && !captcha)} aria-busy={busy}>{busy ? 'Creating...' : 'Create account'}</button>
+        <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy} aria-busy={busy}>{busy ? 'Working...' : 'Create my account'}</button>
       </form>
 
-      {msg && !msg.bad ? (
-        <div className="ap-signup-success" role="status" aria-live="polite">
-          <span className="ap-signup-success-icon" aria-hidden="true">✓</span>
-          <div className="ap-signup-success-copy">
-            <strong>Check your inbox</strong>
-            <p>We sent a confirmation link to <b>{email}</b>. Open the email and click the link to activate your AKOX account.</p>
-            <small>Can’t find it? Check your spam or promotions folder.</small>
-          </div>
-        </div>
-      ) : (
-        <p className="ap-note bad ap-status" role={msg?.bad ? 'alert' : 'status'} aria-live="polite">{msg?.text ?? ' '}</p>
-      )}
+      <p className={msg?.bad ? 'ap-note bad ap-status' : 'ap-note ap-status'} role="status">{msg?.text ?? ' '}</p>
     </AuthFrame>
   );
 }

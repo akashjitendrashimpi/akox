@@ -45,7 +45,7 @@ export default async function ExplorePage() {
 
       {people.length === 0 ? (
         <div className="ap-panel ap-empty">
-          <p className="ap-note" style={{ marginTop: 0 }}>Nothing here yet. Add a project to your portfolio and yours will be the first.</p>
+          <p className="ap-note" style={{ marginTop: 0 }}>Nobody has shared a site here yet. Add a project and yours will be the first.</p>
           <Link className="ap-btn" href="/dashboard/edit">Add a project</Link>
         </div>
       ) : (

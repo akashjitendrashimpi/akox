@@ -11,6 +11,7 @@ const ready = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_P
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [captcha, setCaptcha] = useState('');
+  const [widgetKey, setWidgetKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
@@ -29,6 +30,9 @@ export default function ForgotPasswordPage() {
     setBusy(false);
 
     if (requestError) {
+      // A bot-check token can be used only once: ask for a fresh one before the next try.
+      setCaptcha('');
+      setWidgetKey((k) => k + 1);
       // Do not reveal whether an email address belongs to an account.
       setError('We could not send the reset email right now. Please wait a moment and try again.');
       return;
@@ -69,7 +73,7 @@ export default function ForgotPasswordPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
-          <Turnstile onToken={setCaptcha} />
+          <Turnstile key={widgetKey} onToken={setCaptcha} />
           <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy || (captchaEnabled && !captcha)} aria-busy={busy}>
             {busy ? 'Sending link…' : 'Send reset link'}
           </button>

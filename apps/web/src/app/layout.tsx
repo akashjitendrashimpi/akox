@@ -7,35 +7,22 @@ import '@fontsource/ibm-plex-sans/600.css';
 import '@fontsource/ibm-plex-mono/400.css';
 import './globals.css';
 import { THEME_BOOT_SCRIPT } from '../lib/theme';
-
-const APP_ORIGIN = process.env.NEXT_PUBLIC_APP_ORIGIN || 'https://akox.in';
+import { BRAND, SHARE } from '../lib/brand';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(APP_ORIGIN),
-  title: {
-    default: 'AKOX: a website with your name on it',
-    template: '%s | AKOX',
-  },
-  description: 'Free portfolio websites for students and freelancers. Use a simple form, or bring your own code.',
-  keywords: ['portfolio', 'free website', 'student portfolio', 'designer portfolio', 'developer portfolio'],
-  authors: [{ name: 'AKOX' }],
+  metadataBase: new URL(BRAND.url),
+  title: { default: SHARE.title, template: `%s | ${BRAND.name}` },
+  description: SHARE.description,
+  applicationName: BRAND.name,
   openGraph: {
-    title: 'AKOX: a website with your name on it',
-    description: 'Free portfolio websites for students and freelancers. Use a simple form, or bring your own code.',
-    url: APP_ORIGIN,
-    siteName: 'AKOX',
-    locale: 'en_IN',
     type: 'website',
+    siteName: BRAND.name,
+    title: SHARE.ogTitle,
+    description: SHARE.ogDescription,
+    url: BRAND.url,
+    locale: 'en_IN',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'AKOX: a website with your name on it',
-    description: 'Free portfolio websites for students and freelancers. Use a simple form, or bring your own code.',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  twitter: { card: 'summary_large_image', title: SHARE.ogTitle, description: SHARE.ogDescription },
 };
 
 export const viewport: Viewport = { themeColor: '#100e2a', colorScheme: 'dark light' };

@@ -5,8 +5,9 @@ import { SITE_SUFFIX, siteUrl } from '../../../lib/site-url';
 import { AppBar } from '../../../components/AppBar';
 import { BackLink } from '../../../components/BackLink';
 import { ReportButton } from '../../../components/ReportButton';
+import { TriangleMark } from '../../../components/brand/Logo';
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export default async function PublicPortfolio({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
@@ -24,8 +25,8 @@ export default async function PublicPortfolio({ params }: { params: Promise<{ us
         <AppBar />
         <main className="ap-wrap ap-page">
           <div className="ap-narrow">
-            <h1 className="ap-title">Portfolio unavailable</h1>
-            <p className="ap-lead">This portfolio has been suspended.</p>
+            <h1 className="ap-title">Site unavailable</h1>
+            <p className="ap-lead">This site has been taken down.</p>
           </div>
         </main>
       </>
@@ -67,7 +68,7 @@ export default async function PublicPortfolio({ params }: { params: Promise<{ us
           <ReportButton ownerId={String(p.id)} />
         </article>
       </main>
-      <footer className="ap-footer">Made with <Link href="/">AKOX</Link></footer>
+      <footer className="ap-footer"><TriangleMark /> Made with <Link href="/">Akox</Link></footer>
     </>
   );
 }

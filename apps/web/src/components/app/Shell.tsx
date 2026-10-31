@@ -8,6 +8,7 @@ import { planLabel } from '../../lib/plan';
 import { AppBar } from '../AppBar';
 import { MobileMenu } from '../MobileMenu';
 import { CompassIcon, ExternalIcon, GearIcon, GridIcon, LayoutIcon, PencilIcon, UploadIcon } from './Icons';
+import { Logo } from '../brand/Logo';
 
 export interface ShellUser {
   id: string;
@@ -37,7 +38,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', short: 'Home', Icon: GridIcon, exact: true },
-  { href: '/dashboard/edit', label: 'Profile and projects', short: 'Profile', Icon: PencilIcon },
+  { href: '/dashboard/edit', label: 'Edit portfolio', short: 'Edit', Icon: PencilIcon },
   { href: '/dashboard/templates', label: 'Site builder', short: 'Build', Icon: LayoutIcon },
   { href: '/dashboard/upload', label: 'Upload site', short: 'Upload', Icon: UploadIcon },
   { href: '/explore', label: 'Explore', short: 'Explore', Icon: CompassIcon },
@@ -76,7 +77,7 @@ export function DashboardShell({ children, pub = false }: { children: ReactNode;
   if (state.status === 'out' || (pub && state.status === 'loading')) {
     return (
       <ShellContext.Provider value={value}>
-        {state.status === 'out' ? <AppBar /> : <div className="ap-nav"><div className="ap-wrap ap-nav-in"><Link className="ap-logo" href="/">akox</Link></div></div>}
+        {state.status === 'out' ? <AppBar /> : <div className="ap-nav"><div className="ap-wrap ap-nav-in"><Link className="ap-logo" href="/"><Logo /></Link></div></div>}
         <main className="ap-wrap ap-page">{children}</main>
       </ShellContext.Provider>
     );
@@ -121,17 +122,17 @@ export function DashboardShell({ children, pub = false }: { children: ReactNode;
     <ShellContext.Provider value={value}>
       <div className="ap-shell">
         <aside className="ap-side">
-          <Link className="ap-logo ap-side-logo" href="/dashboard">akox</Link>
+          <Link className="ap-logo ap-side-logo" href="/dashboard"><Logo /></Link>
           {sideNav}
         </aside>
 
         <header className="ap-topm">
           <div className="ap-nav-l">
             <MobileMenu title="Menu">
-              <Link className="ap-logo ap-drawer-logo" href="/dashboard">akox</Link>
+              <Link className="ap-logo ap-drawer-logo" href="/dashboard"><Logo /></Link>
               {sideNav}
             </MobileMenu>
-            <Link className="ap-logo" href="/dashboard">akox</Link>
+            <Link className="ap-logo" href="/dashboard"><Logo /></Link>
           </div>
           <Link className="ap-avatar-sm" href="/dashboard/settings" aria-label="Account settings">{initial}</Link>
         </header>

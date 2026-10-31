@@ -1,4 +1,4 @@
-/* AKOX app theme.
+/* Akox app theme.
    Dark canvas = the product. Paper surfaces = things that belong to a person
    (their address, their public site). Landing-page styles live in landing.css. */
 
@@ -29,16 +29,10 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { color-scheme: dark; background: var(--bg); }
-@media (prefers-reduced-motion: no-preference) {
-  html { scroll-behavior: smooth; }
-}
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font: 400 1.0625rem/1.6 var(--font-sans), "Segoe UI", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  -webkit-tap-highlight-color: transparent;
 }
 a { color: inherit; text-decoration: none; }
 h1, h2, h3 { font-family: var(--font-display), system-ui, sans-serif; margin: 0; text-wrap: balance; }
@@ -201,41 +195,7 @@ textarea.ap-input { min-height: 120px; resize: vertical; line-height: 1.5; }
 .ap-auth .ap-input { min-height: 48px; }
 .ap-auth .ap-or { margin: 14px 0; }
 .ap-auth .ap-submit { margin-top: 20px; }
- .ap-auth .ap-status { margin: 10px 0 0; }
-
-/* Signup confirmation: prominent, calm feedback that is easy to notice. */
-.ap-signup-success {
-  display: flex; align-items: flex-start; gap: 14px;
-  width: 100%; margin: 18px 0 0; padding: 18px 20px;
-  border: 1px solid rgba(126, 224, 181, .48); border-radius: 16px;
-  background: linear-gradient(115deg, rgba(126, 224, 181, .16), rgba(126, 224, 181, .07));
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .12), 0 0 0 1px rgba(126, 224, 181, .04);
-  animation: ap-signup-notice-in .5s var(--ease) both;
-}
-.ap-signup-success-icon {
-  display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px;
-  margin-top: 1px; border-radius: 50%; background: #27b76d; color: #071b12;
-  font-size: 1.25rem; line-height: 1; font-weight: 900;
-  box-shadow: 0 0 0 0 rgba(39, 183, 109, .32);
-  animation: ap-signup-check .55s .12s var(--ease) both, ap-signup-glow 2.8s 1s ease-out infinite;
-}
-.ap-signup-success-copy { min-width: 0; }
-.ap-signup-success-copy strong { display: block; margin: 0 0 3px; color: #a9f2cf; font: 700 1.18rem/1.3 var(--font-display), system-ui, sans-serif; letter-spacing: -.015em; }
-.ap-signup-success-copy p { margin: 0; color: var(--ink); font-size: 1rem; line-height: 1.55; overflow-wrap: anywhere; }
-.ap-signup-success-copy p b { color: #fff; font-weight: 700; }
-.ap-signup-success-copy small { display: block; margin-top: 7px; color: #c2c0df; font-size: .9rem; line-height: 1.45; }
-@keyframes ap-signup-notice-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes ap-signup-check { from { opacity: 0; transform: scale(.65); } 65% { opacity: 1; transform: scale(1.12); } to { transform: scale(1); } }
-@keyframes ap-signup-glow { 0% { box-shadow: 0 0 0 0 rgba(39, 183, 109, .28); } 65%, 100% { box-shadow: 0 0 0 9px rgba(39, 183, 109, 0); } }
-@media (max-width: 520px) {
-  .ap-signup-success { gap: 11px; padding: 15px; margin-top: 14px; }
-  .ap-signup-success-copy strong { font-size: 1.08rem; }
-  .ap-signup-success-copy p { font-size: .95rem; }
-  .ap-signup-success-copy small { font-size: .85rem; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ap-signup-success, .ap-signup-success-icon { animation: none; }
-}
+.ap-auth .ap-status { margin: 10px 0 0; }
 .ap-row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0 14px; }
 .ap-field .ap-label { margin-top: 14px; }
 .ap-auth-aside { display: grid; place-items: center; padding: 48px; border-left: 1px solid var(--line); background: radial-gradient(70% 60% at 50% 40%, rgba(74, 61, 240, .4), transparent 70%), var(--bg-raise); }
@@ -840,7 +800,7 @@ body:has(.ap-shell)::after { opacity: .5; }
 :root[data-theme="light"] .ap-ph-title::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 88 9'%3E%3Cpath d='M1.5 6c8-5.5 15 3 23-1.2s13 3.2 22-1.3 14 3.4 22-1S82 5 86.5 3' fill='none' stroke='%233b2fd9' stroke-width='2.3' stroke-linecap='round'/%3E%3C/svg%3E"); }
 .ap-ph-lead { margin-top: 10px; }
 
-/* Explore cards are paper: the thing that belongs to a person sits on the dark desk, like the rest of AKOX */
+/* Explore cards are paper: the thing that belongs to a person sits on the dark desk, like the rest of Akox */
 .ap-pcard { position: relative; background: var(--card-paper); color: var(--card-ink); border: 1px solid var(--card-line); border-top: 4px solid var(--from); border-radius: 4px 4px 10px 10px; padding: 16px 18px 16px; box-shadow: 0 1px 0 rgba(0, 0, 0, .25); transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .15s; }
 .ap-pcard:hover { border-color: var(--from); transform: translateY(-3px) rotate(-.25deg); box-shadow: 0 14px 24px -16px rgba(0, 0, 0, .7); }
 .ap-pcard:focus-visible { outline: 3px solid var(--peri); outline-offset: 3px; }
@@ -1104,3 +1064,60 @@ body:has(.ap-shell)::after { opacity: .5; }
 .ap-imghint.is-bad { color: #ffb454; }
 :root[data-theme="light"] .ap-imghint.is-bad { color: #8a5300; }
 .ap-imghint .ap-textbtn { color: inherit; text-decoration: underline; padding: 0; font-weight: 600; }
+
+/* ===== Rebrand v13: the ▲ mark, marigold accent, 8px controls, quiet-text contrast ===== */
+:root { --gold: #ffb020; }
+:root[data-theme="light"] { --gold: #b45309; --mute: #5b6660; --dim-paper: #5b6660; }
+.akx-logo { display: inline-flex; align-items: baseline; }
+.akx-mark { width: .5em; height: .46em; margin-left: .12em; fill: var(--gold); flex: none; }
+.ap-btn, .ap-input { border-radius: 8px; }
+.ap-panel { border-radius: 12px; }
+
+/* Share actions on the success screens */
+.akx-share { margin-top: 6px; }
+.akx-share .ap-status { margin-top: 10px; min-height: 1.5em; }
+
+/* Legal and report pages */
+.akx-doc { max-width: 720px; margin: 0 auto; padding: clamp(28px, 6vw, 64px) 20px 72px; }
+.akx-doc h1 { font: 800 clamp(2rem, 6vw, 2.8rem)/1.1 var(--font-display), system-ui, sans-serif; letter-spacing: -.035em; margin: 14px 0 8px; }
+.akx-doc h2 { font: 700 1.25rem/1.3 var(--font-display), system-ui, sans-serif; margin: 32px 0 8px; }
+.akx-doc p, .akx-doc li { color: var(--dim); line-height: 1.7; }
+.akx-doc p { margin: 0 0 12px; }
+.akx-doc ul, .akx-doc ol { padding-left: 1.25rem; margin: 0 0 12px; }
+.akx-doc li { margin: 6px 0; }
+.akx-doc a { color: var(--peri); text-decoration: underline; text-underline-offset: 3px; }
+.akx-doc .akx-meta { color: var(--mute); font-size: .95rem; }
+.akx-draft { margin: 18px 0 8px; padding: 14px 16px; border: 1.5px solid var(--gold); border-radius: 12px; background: rgba(255, 176, 32, .08); color: var(--ink); font-size: .95rem; line-height: 1.55; }
+.akx-draft b { color: var(--ink); }
+.akx-doc-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.akx-help { margin-top: 24px; padding: 16px 18px; border: 1.5px solid var(--line-strong); border-radius: 12px; }
+.akx-help p { margin: 0; }
+.akx-footer { border-top: 1px solid var(--line); }
+.akx-footer .lp-wrap { color: var(--mute); }
+.akx-footer a { color: inherit; }
+.akx-footer a:hover { color: var(--ink); }
+.akx-form { display: grid; gap: 16px; margin-top: 20px; }
+.akx-form fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 4px; }
+.akx-form legend { padding: 0; margin-bottom: 6px; font-weight: 600; color: var(--ink); }
+.akx-check { display: flex; gap: 10px; align-items: flex-start; color: var(--dim); line-height: 1.5; }
+.akx-check input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--indigo); flex: none; }
+.akx-opt { display: flex; gap: 10px; align-items: center; min-height: 44px; color: var(--dim); }
+.akx-opt input { width: 20px; height: 20px; accent-color: var(--indigo); flex: none; }
+select.ap-input { min-height: 48px; }
+textarea.ap-input { min-height: 120px; }
+.ap-input, select.ap-input, textarea.ap-input { font-size: 16px; }
+
+/* Public site footer: the ▲ mark sits before the words, 24px tap height for the link */
+.ap-footer .akx-mark { width: 12px; height: 11px; margin: 0 4px 0 0; vertical-align: -1px; }
+.ap-footer a { display: inline-flex; align-items: center; min-height: 24px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Footer on pages that do not load the landing stylesheet (trust pages, 404) */
+.akx-footer .lp-wrap { width: min(100% - 40px, 1120px); margin: 0 auto; padding: 28px 0 40px; }
+.akx-footer .lp-foot { display: grid; grid-template-columns: 1fr; gap: 16px 40px; }
+.akx-footer .lp-foot nav { display: flex; flex-wrap: wrap; gap: 4px 22px; align-content: flex-start; }
+.akx-footer .lp-foot nav a { display: inline-flex; align-items: center; min-height: 44px; }
+.akx-footer .lp-foot-brand p { margin: 8px 0 0; }
+.akx-footer .lp-foot-small { font-size: .9rem; max-width: 34ch; }
+.akx-footer .lp-foot-legal { margin: 0; padding-top: 8px; border-top: 1px solid var(--line); max-width: none; }
+.akx-footer .lp-logo { font: 800 1.5rem var(--font-display), system-ui, sans-serif; letter-spacing: -.04em; color: var(--ink); }
+@media (min-width: 760px) { .akx-footer .lp-foot { grid-template-columns: 1.2fr 1.6fr; } .akx-footer .lp-foot-legal { grid-column: 1 / -1; } }

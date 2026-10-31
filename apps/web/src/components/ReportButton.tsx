@@ -14,7 +14,7 @@ export function ReportButton({ ownerId }: { ownerId: string }) {
     const sb = getSupabase();
     const res = await sb?.auth.getSession();
     const me = res?.data.session?.user;
-    if (!sb || !me) { setMsg('Please log in to report a portfolio.'); return; }
+    if (!sb || !me) { setMsg('Log in to report this site, or use the Report a site page.'); return; }
     const { error } = await sb.from('site_reports').insert({ owner_id: ownerId, reporter_id: me.id, reason: reason.trim() });
     if (error) {
       setMsg(error.code === '23505' ? 'You already reported this portfolio.' : error.message);

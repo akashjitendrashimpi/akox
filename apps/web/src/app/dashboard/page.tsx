@@ -75,7 +75,7 @@ export default function DashboardPage() {
     return (
       <div className="ap-narrow">
         <h1 className="ap-title">You are not logged in</h1>
-        <p className="ap-lead">Log in to see your portfolio.</p>
+        <p className="ap-lead">Log in to see your site.</p>
         <Link className="ap-btn" href="/login">Go to login</Link>
       </div>
     );

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { limitsFor } from '@akox/core';
-import { SITE_SUFFIX } from '../../lib/site-url';
 import { fmtBytes, planLabel } from '../../lib/plan';
 import { fmtWhen, kindLabel, type SiteKind } from '../../lib/liveSite';
 import { useEffect, useState } from 'react';
@@ -33,7 +32,7 @@ export interface DashboardMe {
 interface Task { done: boolean; label: string; href?: string }
 
 const SHORTCUTS = [
-  { href: '/dashboard/edit', title: 'Profile and projects', sub: 'Your card in Explore', tint: 'blue', Icon: PencilIcon },
+  { href: '/dashboard/edit', title: 'Edit portfolio', sub: 'Bio and projects', tint: 'blue', Icon: PencilIcon },
   { href: '/dashboard/templates', title: 'Build a site', sub: 'Pick a template and fill it in', tint: 'purple', Icon: LayoutIcon },
   { href: '/dashboard/upload', title: 'Upload your site', sub: 'Publish a zip of your own code', tint: 'green', Icon: UploadIcon },
   { href: '/explore', title: 'Explore', sub: 'See what others published', tint: 'orange', Icon: CompassIcon },
@@ -107,7 +106,7 @@ export function DashboardView({ me, copied, onCopy }: { me: DashboardMe; copied:
       <section className="ap-hero" aria-label="Your page">
         <div className="ap-hero-text">
           <p className="ap-hero-cap">Your page</p>
-          <h2 className="ap-mono">{me.username}<span>{SITE_SUFFIX}</span></h2>
+          <h2 className="ap-mono">{me.username}<span>.akox.in</span></h2>
           <p className="ap-hero-sub">
             {me.kind
               ? <>Live now: <b>{kindLabel(me.kind)}</b>{me.updatedAt ? `, updated ${fmtWhen(me.updatedAt)}` : ''}.

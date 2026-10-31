@@ -2,7 +2,7 @@ export type Theme = 'dark' | 'light';
 
 export const THEME_KEY = 'akox:theme';
 
-/** Dark is the default. Light is the original AKOX palette (pale green-grey page, indigo accent). */
+/** Dark is the default. Light is the original Akox palette (pale green-grey page, indigo accent). */
 export function readTheme(): Theme {
   try {
     return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark';
