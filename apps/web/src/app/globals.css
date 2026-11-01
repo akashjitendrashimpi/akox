@@ -1121,3 +1121,79 @@ textarea.ap-input { min-height: 120px; }
 .akx-footer .lp-foot-legal { margin: 0; padding-top: 8px; border-top: 1px solid var(--line); max-width: none; }
 .akx-footer .lp-logo { font: 800 1.5rem var(--font-display), system-ui, sans-serif; letter-spacing: -.04em; color: var(--ink); }
 @media (min-width: 760px) { .akx-footer .lp-foot { grid-template-columns: 1.2fr 1.6fr; } .akx-footer .lp-foot-legal { grid-column: 1 / -1; } }
+
+/* ===== Explore v14: saved shelf, surprise, today's pick, list view, hand-made details ===== */
+:root { --card-mute: #5b6660; }
+
+/* Tools row: Surprise me, layout, a small note */
+.ap-xtools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.ap-surprise { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1.5px dashed var(--line-strong); border-radius: 8px; background: transparent; color: var(--ink); font: 600 .92rem var(--font-sans), system-ui, sans-serif; cursor: pointer; transition: border-color .15s, color .15s, background-color .15s; }
+.ap-surprise svg { transition: transform .25s var(--ease); }
+.ap-surprise:hover:not(:disabled) { border-style: solid; border-color: var(--peri); color: var(--peri); }
+.ap-surprise:hover:not(:disabled) svg { transform: rotate(24deg); }
+.ap-surprise:active:not(:disabled) { transform: scale(.97); }
+.ap-surprise:disabled { opacity: .4; cursor: default; }
+.ap-surprise:focus-visible, .ap-bm:focus-visible, .ap-upnext:focus-visible { outline: 3px solid var(--peri); outline-offset: 2px; }
+.ap-density button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+.ap-psst { margin-left: auto; display: inline-flex; align-items: flex-end; gap: 6px; color: var(--mute); font: 500 .82rem var(--font-mono), ui-monospace, monospace; transform: rotate(-2deg); }
+.ap-psst b { color: var(--ink); font-weight: 600; }
+.ap-psst svg { transform: scaleY(-1) rotate(8deg); margin-bottom: 4px; }
+@media (hover: none), (max-width: 760px) { .ap-psst, .ap-keys { display: none; } }
+
+/* Saved filter chip */
+.ap-filters .ap-savedchip { display: inline-flex; align-items: center; gap: 6px; }
+.ap-savedn { min-width: 20px; padding: 0 6px; border-radius: 99px; background: var(--peri); color: #100e2a; font-size: .78rem; font-weight: 700; line-height: 20px; text-align: center; }
+:root[data-theme="light"] .ap-savedn { background: #3b2fd9; color: #fff; }
+
+/* Bookmark on each card. It sits beside the card link, not inside it, so the page stays valid HTML. */
+.ap-grid > li.ap-pwrap { position: relative; }
+.ap-bm { position: absolute; top: 4px; right: 4px; z-index: 3; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 8px; background: transparent; color: #5b6660; cursor: pointer; transition: color .15s, transform .15s var(--ease); }
+.ap-bm:hover { color: #3b2fd9; transform: scale(1.1); }
+.ap-bm[aria-pressed="true"] { color: #3b2fd9; }
+.ap-bm:active { transform: scale(.9); }
+.ap-pcard .ap-pnum { right: 52px; top: 14px; }
+
+/* Cards are pinned by hand: a tiny fixed tilt that straightens when you point at it */
+.ap-pcard { rotate: var(--tilt, 0deg); transition: transform .18s var(--ease), rotate .2s var(--ease), box-shadow .18s var(--ease), background-color .18s, border-color .18s; }
+.ap-pcard:hover, .ap-pcard.is-active, .ap-pcard:focus-visible { rotate: 0deg; }
+@media (prefers-reduced-motion: reduce) { .ap-pcard { rotate: 0deg; } }
+
+/* Tape on a corner: saved cards and today's pick */
+.ap-tape { position: absolute; top: 12px; left: -20px; z-index: 2; width: 78px; height: 18px; background: rgba(255, 214, 102, .85); transform: rotate(-38deg); box-shadow: 0 1px 2px rgba(0, 0, 0, .2); clip-path: polygon(0 0, 4% 30%, 0 60%, 3% 100%, 100% 100%, 97% 65%, 100% 35%, 96% 0); pointer-events: none; }
+
+/* Today's pick */
+.ap-pickcard { position: relative; overflow: hidden; margin: 0 0 22px; padding: 18px 22px 22px 34px; background: var(--card-paper); color: var(--card-ink); border: 1px solid var(--card-line); border-left: 6px solid var(--from); border-radius: 6px 14px 14px 6px; rotate: -.3deg; box-shadow: 0 16px 28px -24px rgba(0, 0, 0, .8); }
+.ap-pick-label { margin: 0 0 12px; color: var(--card-dim); font: 600 .78rem var(--font-mono), ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.ap-pick-label span { margin-left: 8px; color: var(--card-dim); font-weight: 400; letter-spacing: 0; text-transform: none; }
+.ap-pick-main { display: flex; align-items: center; gap: 14px; }
+.ap-pick-main h2 { margin: 0; font: 800 1.45rem/1.15 var(--font-display), system-ui, sans-serif; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.ap-pick-main .ap-mono { margin: 2px 0 0; color: var(--card-dim); font-size: .9rem; overflow-wrap: anywhere; }
+.ap-pickcard .ap-pavatar, .ap-upnext .ap-pavatar { flex: none; display: grid; place-items: center; width: 52px; height: 52px; margin: 0; border: 0; border-radius: 10px; background: var(--from); color: #fff; font: 800 1.3rem var(--font-display), system-ui, sans-serif; }
+.ap-pick-bio { margin: 12px 0 16px; max-width: 60ch; color: var(--card-dim); line-height: 1.55; overflow-wrap: anywhere; }
+
+/* List layout: a quick scan, one row each, lighter on small screens too */
+.ap-grid.is-list { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.ap-xlayout.has-active .ap-grid.is-list { grid-template-columns: minmax(0, 1fr); }
+.ap-grid.is-list .ap-pcard { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; padding: 10px 56px 10px 16px; border-top-width: 1px; border-left: 5px solid var(--from); border-radius: 6px 10px 10px 6px; rotate: 0deg; min-height: 64px; }
+.ap-grid.is-list .ap-phead { flex: 0 1 260px; min-width: 0; }
+.ap-grid.is-list .ap-pbio { flex: 1 1 200px; min-height: 0; margin: 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.ap-grid.is-list .ap-plist, .ap-grid.is-list .ap-pnum, .ap-grid.is-list .ap-view { display: none; }
+.ap-grid.is-list .ap-pfoot { flex: none; margin: 0; padding: 0; border: 0; }
+.ap-grid.is-list .ap-bm { top: 10px; }
+@media (max-width: 640px) { .ap-grid.is-list .ap-pbio { flex-basis: 100%; -webkit-line-clamp: 2; } .ap-grid.is-list .ap-pfoot { display: none; } }
+
+/* Inside the preview */
+.ap-keys { margin: -8px 0 18px; color: var(--card-dim); font: 500 .8rem var(--font-mono), ui-monospace, monospace; }
+.ap-keys kbd { padding: 1px 6px; border: 1px solid var(--card-line); border-radius: 4px; background: #fff; color: var(--card-ink); font: inherit; }
+.ap-viewer .ap-btn-ghost[aria-pressed="true"] { background: rgba(59, 47, 217, .1); box-shadow: inset 0 0 0 1.5px #3b2fd9; color: #3b2fd9; }
+.ap-viewer a.ap-btn-ghost { text-decoration: none; }
+.ap-upnext { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 24px; padding: 12px 14px; border: 1.5px dashed var(--card-line); border-radius: 10px; background: transparent; color: var(--card-ink); text-align: left; cursor: pointer; transition: border-color .15s, background-color .15s; }
+.ap-upnext:hover { border-style: solid; border-color: var(--from); background: color-mix(in srgb, var(--from) 8%, transparent); }
+.ap-upnext > span:nth-child(2) { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.ap-upnext small { color: var(--card-dim); font: 600 .72rem var(--font-mono), ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.ap-upnext b { font: 700 1.05rem var(--font-display), system-ui, sans-serif; overflow-wrap: anywhere; }
+.ap-upnext > svg { flex: none; color: var(--from); }
+
+/* Small confirmation, clear of the phone tab bar */
+.ap-xtoast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 60; transform: translateX(-50%); max-width: min(92vw, 420px); margin: 0; padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--bg); font: 600 .92rem var(--font-sans), system-ui, sans-serif; text-align: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.ap-xtoast:not(:empty) { opacity: 1; }
