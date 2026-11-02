@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import { ArrowIcon, ChevronLeftIcon, CloseIcon, CopyIcon, CheckIcon, ExternalIcon, SearchIcon } from './Icons';
 import { BookmarkIcon, DiceIcon, GridIcon, ListIcon, ShareIcon } from './ExploreIcons';
+import { siteUrl } from '../../lib/site-url';
 
 export interface Project { title: string; description: string; url: string | null }
-export interface Person { id: string; username: string; display_name: string; bio: string; titles: string[]; projects?: Project[] }
+export interface Person { id: string; username: string; display_name: string; bio: string; titles: string[]; projects?: Project[]; kind?: string | null }
 type Sort = 'latest' | 'projects' | 'name';
 type Filter = 'all' | 'many' | 'bio' | 'saved';
 type Density = 'cards' | 'list';
@@ -307,7 +308,7 @@ export function ExploreView({ people }: { people: Person[] }) {
                     {newLetter && <li className="ap-letter" aria-hidden="true">{letter}</li>}
                     <li className="ap-pwrap">
                       <Link
-                        href={'/u/' + p.username}
+                        href={p.kind ? siteUrl(p.username) : '/u/' + p.username}
                         onClick={(e) => onCard(e, p)}
                         aria-current={on ? 'true' : undefined}
                         className={`ap-pcard ap-rise ap-tone-${tone(p.username)}${on ? ' is-active' : ''}${saved.includes(p.id) ? ' is-saved' : ''}`}
@@ -325,7 +326,7 @@ export function ExploreView({ people }: { people: Person[] }) {
                         <span className="ap-pbio">{p.bio || 'No bio yet.'}</span>
                         <span className="ap-plist">{p.titles.slice(0, 3).join('  ·  ')}{n > 3 ? `  ·  +${n - 3} more` : ''}</span>
                         <span className="ap-pfoot">
-                          <span>{n} {n === 1 ? 'project' : 'projects'}</span>
+                          <span>{n > 0 ? `${n} ${n === 1 ? 'project' : 'projects'}` : p.kind === 'zip' ? 'Custom website' : p.kind === 'template' ? 'Template site' : '0 projects'}</span>
                           <span className="ap-view">{on ? 'Viewing' : 'Preview'}<ArrowIcon size={16} /></span>
                         </span>
                       </Link>
@@ -364,7 +365,7 @@ export function ExploreView({ people }: { people: Person[] }) {
               <p className="ap-viewer-bio">{person.bio || 'No bio yet.'}</p>
 
               <div className="ap-viewer-actions">
-                <Link className="ap-btn" href={'/u/' + person.username}>Open full page<ArrowIcon size={18} className="ap-nudge" /></Link>
+                <Link className="ap-btn" href={person.kind ? siteUrl(person.username) : '/u/' + person.username}>Open full page<ArrowIcon size={18} className="ap-nudge" /></Link>
                 <button type="button" className="ap-btn ap-btn-ghost" onClick={() => copyLink(person)}>
                   {copied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}{copied ? 'Copied' : 'Copy link'}
                 </button>

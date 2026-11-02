@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Fragment, useEffect, useState, type CSSProperties } from 'react';
 import { ClaimForm } from './ClaimForm';
 import { Stack3D } from './Stack3D';
+import { Mandala } from '../brand/Mandala';
 
 const HEADLINE = 'A website with your name on it.';
 
@@ -54,6 +55,7 @@ export function Hero() {
   return (
     <section className="lp-hero" aria-labelledby="hero-h">
       <div className="lp-wrap lp-hero-grid">
+        <Mandala className="lp-m-hero is-slow" />
         <div className="lp-hero-copy">
           <p className="lp-eyebrow">Free during early access</p>
           <h1 id="hero-h">

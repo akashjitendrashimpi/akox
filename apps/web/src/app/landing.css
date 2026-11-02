@@ -366,3 +366,50 @@ html[data-theme="light"]:has(.lp), html[data-theme="light"] body:has(.lp) { back
   .lp-steps b, .lp-ways h3 { letter-spacing: -.01em; }
 }
 .lp a.lp-btn, .lp a.lp-btn:hover { color: #fff; }
+
+/* ===== v19: mandala on the landing page ===== */
+.lp { position: relative; }
+.lp-art { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.lp main, .lp footer, .lp-nav { position: relative; z-index: 1; }
+.lp-art .akx-mwrap { z-index: 0; }
+.lp-m-a { width: min(80vw, 560px); right: -30%; top: 90px; }
+.lp-m-b { width: min(80vw, 520px); left: -34%; bottom: 14%; }
+.lp-m-hero { width: min(150vw, 700px); left: 50%; bottom: -8%; transform: translateX(-50%); z-index: 0; opacity: .26; }
+:root[data-theme="light"] .lp-m-hero { opacity: .2; }
+@media (min-width: 900px) {
+  .lp-m-a { right: -8%; top: 40px; }
+  .lp-m-b { left: -9%; bottom: 8%; width: 560px; }
+  .lp-m-hero { left: auto; right: -3%; bottom: auto; top: 50%; transform: translateY(-50%); width: 660px; }
+}
+.lp-hero > .lp-wrap { z-index: 1; }
+
+/* The halo for the landing page: letters keep a ring of the page colour so art never runs through a word */
+.lp :is(h1, h2, h3, p, li, summary, b, small, .lp-hint, .lp-alt) { text-shadow: 0 0 6px var(--lp-bg), 0 0 2px var(--lp-bg), 0 0 14px var(--lp-bg); }
+:root[data-theme="light"] .lp :is(h1, h2, h3, p, li, summary, b, small) { text-shadow: 0 0 6px #f4f6f1, 0 0 2px #f4f6f1, 0 0 14px #f4f6f1; }
+/* Text inside the lit paper cards and the claim field is already on a solid surface: no halo needed */
+.lp-claim-field *, .lp-btn, .lp-tpls li *, .lp-3d * { text-shadow: none; }
+
+/* Phones: keep the mandala centres (and the gold triangle) off the text column; only the soft outer rings show */
+@media (max-width: 899px) {
+  .lp-m-a { width: min(86vw, 430px); right: -62%; top: 70px; }
+  .lp-m-b { width: min(86vw, 430px); left: -62%; bottom: 10%; }
+}
+
+/* v20: the hero mandala is the main piece, so it gets the most presence */
+.lp-m-hero { opacity: .42; }
+:root[data-theme="light"] .lp-m-hero { opacity: .34; }
+
+/* ===== v21: no overlaps on desktop ===== */
+/* One focal mandala in the hero, centred on the 3D object and always smaller than the hero, so it is never cut off or pushed under the menu. */
+.lp-hero-grid { position: relative; }
+.lp-hero-copy { position: relative; z-index: 1; }
+@media (min-width: 900px) {
+  .lp-m-hero { left: 79%; right: auto; top: 50%; bottom: auto; transform: translate(-50%, -50%); width: clamp(380px, 46vw, 560px); }
+  /* The two side pieces only appear where the margins are empty, and only peek in from the edge */
+  .lp-m-a, .lp-m-b { display: none; }
+}
+@media (min-width: 1440px) {
+  .lp-m-a, .lp-m-b { display: block; width: 400px; }
+  .lp-m-a { right: -210px; left: auto; top: 38%; }
+  .lp-m-b { left: -210px; right: auto; bottom: 5%; }
+}

@@ -8,6 +8,7 @@ import { Reveal } from '../components/landing/Reveal';
 import { Faq, FAQ } from '../components/landing/Faq';
 import { Showcase } from '../components/landing/Showcase';
 import { SiteFooter } from '../components/brand/SiteFooter';
+import { Mandala } from '../components/brand/Mandala';
 
 const steps: { title: string; text: ReactNode }[] = [
   { title: 'Claim your name', text: <>Type it. If it is free, it can be yours: <span className="lp-mono">yourname.akox.in</span>.</> },
@@ -61,6 +62,10 @@ export default function Home() {
   };
   return (
     <div className="lp">
+      <div className="lp-art" aria-hidden="true">
+        <Mandala className="lp-m-a is-slow" />
+        <Mandala className="lp-m-b" />
+      </div>
       <LandingNav />
       <main id="main">
         <Hero />

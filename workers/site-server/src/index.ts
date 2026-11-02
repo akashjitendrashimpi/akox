@@ -24,9 +24,7 @@ const CACHE_MAX_BYTES = 5 * 1024 * 1024;
 function securityHeaders(env: Env): Record<string, string> {
   return {
     'X-Content-Type-Options': 'nosniff',
-    'X-XSS-Protection': '0',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
     'Access-Control-Allow-Origin': '*',
     'Content-Security-Policy': [
@@ -107,7 +105,7 @@ function candidates(pathname: string): string[] | null {
   }
   if (path.includes('\0') || path.includes('\\')) return null;
   const segs = path.split('/').filter(Boolean);
-  if (segs.some((s) => s === '.' || s === '..' || s.startsWith('.') || s === 'Thumbs.db')) return null;
+  if (segs.some((s) => s === '.' || s === '..')) return null;
   const clean = segs.join('/');
   if (clean === '') return ['index.html'];
   if (path.endsWith('/')) return [`${clean}/index.html`];
@@ -115,10 +113,32 @@ function candidates(pathname: string): string[] | null {
   return [`${clean}.html`, `${clean}/index.html`];
 }
 
+/**
+ * Every portfolio page gets a small "Report this site" link, added by AKOX, not by the owner.
+ * The styles are inline and marked !important so the owner's own CSS cannot hide it.
+ * (Owner JavaScript still could, which the rules forbid. A frame around the site would make it stronger.)
+ */
+function withReportLink(res: Response, slug: string, env: Env): Response {
+  const href = `${env.APP_ORIGIN}/report?site=${encodeURIComponent(`${slug}.${env.SITE_DOMAIN}`)}`;
+  const style = [
+    'position:fixed', 'right:12px', 'bottom:12px', 'z-index:2147483647', 'display:block', 'visibility:visible',
+    'opacity:1', 'padding:6px 10px', 'border-radius:8px', 'background:rgba(20,20,28,.85)', 'color:#fff',
+    'font:12px/1.2 system-ui,sans-serif', 'text-decoration:none', 'pointer-events:auto', 'transform:none',
+    'clip-path:none', 'width:auto', 'height:auto', 'margin:0',
+  ].map((d) => `${d}!important`).join(';');
+  const link = `<a href="${href}" target="_blank" rel="noopener noreferrer" style="${style}">Report this site</a>`;
+  const headers = new Headers(res.headers);
+  headers.delete('Content-Length');
+  headers.delete('Accept-Ranges');
+  return new HTMLRewriter()
+    .onDocument({ end(end) { end.append(link, { html: true }); } })
+    .transform(new Response(res.body, { status: res.status, headers }));
+}
+
 async function serve(
   rel: string,
   p: { id: string; version: string },
-  basePath: string,
+  site: { slug: string; basePath: string },
   request: Request,
   env: Env,
   ctx: ExecutionContext,
@@ -163,30 +183,20 @@ async function serve(
     }
   }
 
-  if (type.startsWith('text/html') && basePath && !isHead) {
+  if (type.startsWith('text/html') && site.basePath && !isHead) {
     const html = await source.text();
-    const tag = `<base href="${basePath}/">`;
+    const tag = `<base href="${site.basePath}/">`;
     const out = /<head[^>]*>/i.test(html) ? html.replace(/<head([^>]*)>/i, `<head$1>${tag}`) : tag + html;
     return new Response(out, { status, headers });
   }
-  return new Response(isHead ? null : source.body, { status, headers });
+  const res = new Response(isHead ? null : source.body, { status, headers });
+  return type.startsWith('text/html') && !site.basePath && !isHead ? withReportLink(res, site.slug, env) : res;
 }
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-          'Access-Control-Allow-Headers': '*',
-          'Access-Control-Max-Age': '86400',
-        },
-      });
-    }
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD, OPTIONS' } });
+      return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD' } });
     }
     const target = parseTarget(new URL(request.url), env);
     if (!target) return page(env, 404, 'Not found', 'This address does not point to a portfolio.');
@@ -202,11 +212,12 @@ export default {
 
     const rels = candidates(target.path);
     if (!rels) return page(env, 400, 'Bad request', 'That URL is not valid.');
+    const site = { slug: target.slug, basePath: target.basePath };
     for (const rel of rels) {
-      const res = await serve(rel, pointer, target.basePath, request, env, ctx);
+      const res = await serve(rel, pointer, site, request, env, ctx);
       if (res) return res;
     }
-    const custom404 = await serve('404.html', pointer, target.basePath, request, env, ctx, 404);
+    const custom404 = await serve('404.html', pointer, site, request, env, ctx, 404);
     return custom404 ?? page(env, 404, 'Page not found', 'This portfolio has no such page.');
   },
 } satisfies ExportedHandler<Env>;

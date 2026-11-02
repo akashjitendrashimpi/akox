@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { SiteMock } from './SiteMock';
 import { Logo } from '../brand/Logo';
+import { Mandala } from '../brand/Mandala';
 
 type Props = {
   title: string;
@@ -17,6 +18,7 @@ type Props = {
 export function AuthFrame({ title, lead, address = '', corner, children }: Props) {
   return (
     <div className="ap-auth">
+      <Mandala className="akx-m-auth" />
       <div className="ap-auth-main">
         <div className="ap-auth-top">
           <Link className="ap-logo" href="/"><Logo /></Link>
@@ -29,6 +31,7 @@ export function AuthFrame({ title, lead, address = '', corner, children }: Props
         </div>
       </div>
       <aside className="ap-auth-aside" aria-hidden="true">
+        <Mandala className="akx-m-aside is-slow" />
         <SiteMock username={address} />
       </aside>
     </div>

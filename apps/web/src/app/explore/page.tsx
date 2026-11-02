@@ -14,21 +14,32 @@ export default async function ExplorePage() {
 
   if (url && key) {
     const sb = createClient(url, key, { auth: { persistSession: false } });
-    const { data: projs } = await sb.from('projects').select('owner_id, title, description, url').order('created_at', { ascending: false }).limit(200);
+    const { data: projs } = await sb.from('projects').select('owner_id, title, description, url, created_at').order('created_at', { ascending: false }).limit(200);
+    // Everyone with a published site belongs here, with or without projects.
+    const { data: sites } = await sb.from('portfolio_sites').select('owner_id, kind, updated_at').order('updated_at', { ascending: false }).limit(200);
+    const kindOf = new Map((sites ?? []).map((s) => [String(s.owner_id), String(s.kind)] as const));
+    const latest = new Map<string, number>();
+    const bump = (id: string, iso: string | null) => {
+      const t = iso ? Date.parse(iso) : 0;
+      if ((Number.isNaN(t) ? 0 : t) > (latest.get(id) ?? -1)) latest.set(id, Number.isNaN(t) ? 0 : t);
+    };
+    for (const s of sites ?? []) bump(String(s.owner_id), s.updated_at as string | null);
     const byOwner = new Map<string, Project[]>();
-    for (const p of (projs ?? []) as { owner_id: string; title: string; description: string | null; url: string | null }[]) {
+    for (const p of (projs ?? []) as { owner_id: string; title: string; description: string | null; url: string | null; created_at: string | null }[]) {
       const list = byOwner.get(p.owner_id) ?? [];
       list.push({ title: p.title, description: p.description ?? '', url: p.url && /^https?:\/\//i.test(p.url) ? p.url : null });
       byOwner.set(p.owner_id, list);
+      bump(p.owner_id, p.created_at);
     }
-    const ids = [...byOwner.keys()].slice(0, 48);
+    // Newest activity first, whether that was a project or a published site.
+    const ids = [...latest.keys()].sort((a, b) => (latest.get(b) ?? 0) - (latest.get(a) ?? 0)).slice(0, 48);
     if (ids.length > 0) {
       const { data: profs } = await sb.from('profiles').select('id, username, display_name, bio').in('id', ids).eq('suspended', false);
       const byId = new Map(((profs ?? []) as Profile[]).map((p) => [p.id, p] as const));
       // Keep the order of the projects query, so the people with the newest work come first.
       people = ids.flatMap((id) => {
         const p = byId.get(id);
-        return p ? [{ ...p, display_name: p.display_name ?? '', bio: p.bio ?? '', titles: (byOwner.get(id) ?? []).map((x) => x.title), projects: byOwner.get(id) ?? [] }] : [];
+        return p ? [{ ...p, display_name: p.display_name ?? '', bio: p.bio ?? '', titles: (byOwner.get(id) ?? []).map((x) => x.title), projects: byOwner.get(id) ?? [], kind: kindOf.get(id) ?? null }] : [];
       });
     }
   }
@@ -39,7 +50,7 @@ export default async function ExplorePage() {
       <header className="ap-ph">
         <div className="ap-ph-text">
           <h1 className="ap-ph-title">Explore</h1>
-          <p className="ap-ph-lead">{people.length} {people.length === 1 ? 'person has' : 'people have'} put work here so far. Open one and see how they did it.</p>
+          <p className="ap-ph-lead">{people.length} {people.length === 1 ? 'person has' : 'people have'} shared a site here so far. Open one and see how they did it.</p>
         </div>
       </header>
 

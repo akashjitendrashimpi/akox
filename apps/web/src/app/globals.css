@@ -1273,3 +1273,42 @@ html[data-lite] body::after { display: none; }
   .ap-input, .ap-btn-ghost, .ap-seg, .ap-filters button, .ap-surprise { border-color: var(--line-strong); }
   .ap-btn-ghost { box-shadow: inset 0 0 0 1.5px var(--line-strong); }
 }
+
+/* ===== v19: mandala art (landing and sign-in pages only) ===== */
+.akx-mwrap { position: absolute; display: block; pointer-events: none; color: var(--peri); opacity: .2; }
+:root[data-theme="light"] .akx-mwrap { color: #3b2fd9; opacity: .17; }
+.akx-m { display: block; width: 100%; height: auto; overflow: visible; }
+.akx-mwrap { --g: #ffb020; }
+:root[data-theme="light"] .akx-mwrap { --g: #b45309; }
+/* A slow turn on large screens only. Still on phones, for reduced motion, and on slow connections. */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  html:not([data-lite]) .akx-mwrap.is-slow .akx-m { animation: akx-turn 240s linear infinite; }
+}
+@keyframes akx-turn { to { transform: rotate(360deg); } }
+
+/* Sign-in pages: one half-hidden mandala in a corner, one behind the preview card */
+.ap-auth { position: relative; overflow: clip; }
+.ap-auth-main, .ap-auth-aside { position: relative; z-index: 1; }
+.akx-m-auth { width: min(86vw, 420px); right: -24%; top: -9%; z-index: 0; }
+.akx-m-aside { width: min(120%, 620px); left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 0; opacity: .24; }
+:root[data-theme="light"] .akx-m-aside { opacity: .2; }
+@media (max-width: 899px) { .akx-m-auth { width: 340px; right: -36%; top: -4%; } }
+
+/* The halo: text keeps a thin ring of the page colour around its letters, so art lines never run through a word.
+   Invisible on plain background. The same trick printed maps use for street names. */
+.ap-auth-main :is(h1, h2, p, label, li, a, span, small),
+.akx-doc :is(h1, h2, p, li) { text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg), 0 0 12px var(--bg); }
+
+/* v20: stronger, and behind the card */
+.akx-mwrap { opacity: .3; }
+:root[data-theme="light"] .akx-mwrap { opacity: .26; }
+.akx-m-aside { z-index: -1; opacity: .42; }
+:root[data-theme="light"] .akx-m-aside { opacity: .34; }
+.akx-m-auth { z-index: -1; }
+.ap-auth-main { isolation: isolate; }
+:root:not([data-theme="light"]) .ap-input { background-color: #1a1740; }
+
+/* v21: sign-in pages. Keep the art inside its own panel on desktop. */
+.ap-auth-aside { overflow: hidden; }
+.akx-m-aside { width: min(100%, 600px); }
+@media (min-width: 900px) { .akx-m-auth { display: none; } }
