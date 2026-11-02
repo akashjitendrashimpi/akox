@@ -345,3 +345,24 @@ html:has(.lp) { scroll-behavior: smooth; }
   .lp-hero { padding-top: 24px; }
   .lp-3d { order: 1; width: min(100%, 300px); margin: 12px auto 0; }
 }
+
+
+/* ===== v17: landing readability ===== */
+/* Root cause of unreadable text in light mode: the page was forced dark while the text turned dark. */
+html[data-theme="light"]:has(.lp), html[data-theme="light"] body:has(.lp) { background: #f4f6f1; }
+:root[data-theme="light"] .lp { --lp-indigo: #3b2fd9; --lp-indigo-hi: #4a3df0; }
+:root[data-theme="light"] .lp-hero::before { background: radial-gradient(closest-side, rgba(59, 47, 217, .12), transparent); }
+:root[data-theme="light"] .lp-eyebrow { color: #8a5300; }
+:root[data-theme="light"] .lp-showname input { background: #fff; border-color: #7d8a78; color: #1c2320; }
+:root[data-theme="light"] .lp-chips span { border-color: #7d8a78; color: #3d4640; }
+:root[data-theme="light"] .lp-faq, :root[data-theme="light"] .lp-faq details { border-color: #aeb9aa; }
+.lp { --lp-indigo: #5547f5; --lp-indigo-hi: #6a5ef7; }
+:root[data-theme="light"] .lp { --lp-indigo: #3b2fd9; --lp-indigo-hi: #4a3df0; }
+.lp-showname input { border-color: rgba(176, 174, 214, .58); }
+@media (max-width: 640px) {
+  .lp-lead, .lp-sub { font-size: 1.1rem; line-height: 1.55; }
+  .lp-hint, .lp-small, .lp-alt { font-size: 1rem; }
+  .lp-chips span { border-color: rgba(176, 174, 214, .58); color: var(--lp-ink); }
+  .lp-steps b, .lp-ways h3 { letter-spacing: -.01em; }
+}
+.lp a.lp-btn, .lp a.lp-btn:hover { color: #fff; }

@@ -7,6 +7,7 @@ import { getSupabase } from '../../lib/supabase';
 import { signInWithGoogle } from '../../lib/auth';
 import { AuthFrame } from '../../components/app/AuthFrame';
 import { Turnstile, captchaEnabled } from '../../components/Turnstile';
+import { CheckEmail } from '../../components/app/CheckEmail';
 import { PasswordInput } from '../../components/app/Fields';
 
 const ready = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -23,6 +24,7 @@ export default function SignupPage() {
   const [widgetKey, setWidgetKey] = useState(0);
   useEffect(() => { if (msg?.bad) { setCaptcha(''); setWidgetKey((k) => k + 1); } }, [msg]);
   const [wanted, setWanted] = useState('');
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   useEffect(() => {
     void getSupabase()?.auth.getSession().then(({ data }) => {
@@ -66,7 +68,15 @@ export default function SignupPage() {
       return setMsg({ text: 'That email already has an account. Log in instead.', bad: true });
     }
     if (data.session) router.replace('/dashboard');
-    else setMsg({ text: 'Check your inbox. We sent you a link to confirm your email.', bad: false });
+    else setSentTo(email.trim());
+  }
+
+  /** Sends the confirmation link again, with a fresh captcha token. Returns a readable error, or null. */
+  async function resend(token: string): Promise<string | null> {
+    const sb = getSupabase();
+    if (!sb || !sentTo) return 'Cannot reach Akox. Check your connection and try again.';
+    const { error } = await sb.auth.resend({ type: 'signup', email: sentTo, options: { emailRedirectTo: `${window.location.origin}/dashboard`, captchaToken: token || undefined } });
+    return error ? 'We could not send it again yet. Wait a minute and try again.' : null;
   }
 
   async function google() {
@@ -79,10 +89,14 @@ export default function SignupPage() {
     : 'Free during early access. Your site goes live at yourname.akox.in.';
 
   return (
-    <AuthFrame title={wanted ? `Claim ${wanted}.akox.in` : 'Claim your name'} lead={lead} address={wanted}
+    <AuthFrame title={sentTo ? 'Almost there' : wanted ? `Claim ${wanted}.akox.in` : 'Claim your name'} lead={sentTo ? 'One more step and your name is yours.' : lead} address={wanted}
       corner={<>Have an account? <Link className="ap-textlink" href="/login">Log in</Link></>}>
       {!ready && <p className="ap-note bad" role="alert">Sign up is not connected yet. Check your .env.local file.</p>}
 
+      {sentTo ? (
+        <CheckEmail email={sentTo} address={wanted} onResend={resend} onChange={() => { setSentTo(null); setMsg(null); }} />
+      ) : (
+        <>
       <button type="button" className="ap-btn ap-btn-ghost ap-btn-wide" disabled={!ready} onClick={() => void google()}>Sign up with Google</button>
       <p className="ap-or">or use your email</p>
 
@@ -114,6 +128,8 @@ export default function SignupPage() {
         <Turnstile key={widgetKey} onToken={setCaptcha} />
         <button className="ap-btn ap-btn-wide ap-submit" disabled={!ready || busy || (captchaEnabled && !captcha)} aria-busy={busy}>{busy ? 'Working...' : 'Create my account'}</button>
       </form>
+        </>
+      )}
 
       <p className={msg?.bad ? 'ap-note bad ap-status' : 'ap-note ap-status'} role="status">{msg?.text ?? ' '}</p>
     </AuthFrame>

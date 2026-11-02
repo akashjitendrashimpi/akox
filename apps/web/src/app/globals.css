@@ -1197,3 +1197,79 @@ textarea.ap-input { min-height: 120px; }
 /* Small confirmation, clear of the phone tab bar */
 .ap-xtoast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 60; transform: translateX(-50%); max-width: min(92vw, 420px); margin: 0; padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--bg); font: 600 .92rem var(--font-sans), system-ui, sans-serif; text-align: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
 .ap-xtoast:not(:empty) { opacity: 1; }
+
+/* ===== Check your inbox card (after sign-up) ===== */
+.ap-mail { display: grid; justify-items: center; gap: 10px; padding: 26px 20px 22px; border: 1.5px solid var(--line-strong); border-radius: 16px; background: var(--bg-raise); text-align: center; animation: ap-mail-in .5s var(--ease) both; }
+@keyframes ap-mail-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+.ap-mail h2 { margin: 6px 0 0; font: 800 1.6rem/1.15 var(--font-display), system-ui, sans-serif; letter-spacing: -.03em; outline: none; }
+.ap-mail-to { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.ap-mail-why { margin: 0 0 6px; max-width: 34ch; color: var(--dim); line-height: 1.55; }
+.ap-mail .ap-btn-wide { width: 100%; max-width: 360px; margin-top: 6px; }
+.ap-mail-tips { list-style: none; margin: 8px 0 4px; padding: 12px 14px; width: 100%; max-width: 360px; border: 1px dashed var(--line-strong); border-radius: 10px; color: var(--dim); font-size: .92rem; line-height: 1.5; text-align: left; }
+.ap-mail-tips li + li { margin-top: 6px; }
+.ap-mail-tips b { color: var(--ink); }
+.ap-mail-actions { display: grid; gap: 4px; justify-items: center; width: 100%; max-width: 360px; }
+.ap-mail-actions .ap-btn { width: 100%; }
+.ap-mail-wrong { min-height: 44px; padding: 0 8px; border: 0; background: none; font: 600 .95rem var(--font-sans), system-ui, sans-serif; cursor: pointer; }
+.ap-mail .ap-status { min-height: 1.5em; margin: 0; }
+
+.ap-mail-art { width: 168px; height: auto; overflow: visible; }
+.ap-mail-ring { fill: none; stroke: var(--peri); stroke-width: 1.5; opacity: 0; transform-box: fill-box; transform-origin: center; animation: ap-mail-ring 2.8s ease-out 1s infinite; }
+.ap-mail-ring.r2 { animation-delay: 2.2s; }
+@keyframes ap-mail-ring { 0% { opacity: .5; transform: scale(.7); } 100% { opacity: 0; transform: scale(1.25); } }
+.ap-mail-body { fill: var(--bg-raise); stroke: var(--peri); stroke-width: 2.5; }
+.ap-mail-front { fill: var(--tint-2); stroke: var(--peri); stroke-width: 2.5; stroke-linejoin: round; }
+.ap-mail-flap { fill: var(--tint); stroke: var(--peri); stroke-width: 2.5; stroke-linejoin: round; transform-box: fill-box; transform-origin: top; animation: ap-mail-flap .55s var(--ease) .45s both; }
+@keyframes ap-mail-flap { from { transform: scaleY(1); } to { transform: scaleY(-1); } }
+.ap-mail-letter { transform-box: fill-box; animation: ap-mail-letter .6s var(--ease) .85s both; }
+.ap-mail-letter rect { fill: #fff; stroke: var(--peri); stroke-width: 2; }
+.ap-mail-letter path { stroke: #b8b4e6; stroke-width: 3; stroke-linecap: round; }
+@keyframes ap-mail-letter { from { transform: translateY(26px); } to { transform: translateY(-6px); } }
+.ap-mail-badge { transform-box: fill-box; transform-origin: center; animation: ap-mail-pop .5s cubic-bezier(.3, 1.7, .5, 1) 1.35s both; }
+.ap-mail-badge circle { fill: var(--mint); }
+.ap-mail-badge path { stroke: #0b2b1d; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes ap-mail-pop { from { opacity: 0; transform: scale(.2) rotate(-25deg); } to { opacity: 1; transform: none; } }
+:root[data-theme="light"] .ap-mail-badge path { stroke: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  .ap-mail, .ap-mail-flap, .ap-mail-letter, .ap-mail-badge { animation: none; }
+  .ap-mail-flap { transform: scaleY(-1); }
+  .ap-mail-letter { transform: translateY(-6px); }
+  .ap-mail-ring { display: none; }
+}
+.ap-mail-actions .ap-btn:disabled { opacity: .75; cursor: default; }
+
+/* Cloudflare Turnstile box. Reserve its height so the form does not jump when it loads. */
+.ap-captcha { margin: 14px 0 4px; }
+.ap-captcha-box { min-height: 65px; }
+.ap-mail .ap-captcha { width: 100%; max-width: 360px; margin: 4px 0; }
+.ap-mail .ap-captcha-box { min-height: 0; }
+
+
+/* ===== v17: readable on phones, plus a light jaali (lattice) background ===== */
+/* Dark: the indigo fill now sits 3.2:1 against the page (was 2.9:1) and keeps 5.8:1 for white text. */
+:root { --indigo: #5547f5; --indigo-hi: #6a5ef7; --line-strong: rgba(176, 174, 214, .58); --jaali: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96' fill='none' stroke='%23A9A1FF' stroke-width='1' stroke-opacity='.16'><circle cx='48' cy='0' r='24'/><circle cx='48' cy='96' r='24'/><circle cx='0' cy='48' r='24'/><circle cx='96' cy='48' r='24'/><circle cx='48' cy='48' r='24'/><path d='M48 33 63 48 48 63 33 48Z'/><g fill='%23A9A1FF' fill-opacity='.3' stroke='none'><circle cx='24' cy='24' r='1.6'/><circle cx='72' cy='24' r='1.6'/><circle cx='24' cy='72' r='1.6'/><circle cx='72' cy='72' r='1.6'/><circle cx='48' cy='48' r='1.8'/></g></svg>"); }
+:root[data-theme="light"] { --line-strong: #7d8a78; --jaali: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96' fill='none' stroke='%233B2FD9' stroke-width='1' stroke-opacity='.2'><circle cx='48' cy='0' r='24'/><circle cx='48' cy='96' r='24'/><circle cx='0' cy='48' r='24'/><circle cx='96' cy='48' r='24'/><circle cx='48' cy='48' r='24'/><path d='M48 33 63 48 48 63 33 48Z'/><g fill='%233B2FD9' fill-opacity='.3' stroke='none'><circle cx='24' cy='24' r='1.6'/><circle cx='72' cy='24' r='1.6'/><circle cx='24' cy='72' r='1.6'/><circle cx='72' cy='72' r='1.6'/><circle cx='48' cy='48' r='1.8'/></g></svg>"); }
+
+/* The pattern. Strongest at the edges, faint in the middle where the text is. Off on slow connections. */
+body::after {
+  background-image: var(--jaali); background-size: 96px 96px; background-position: center top;
+  -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 42%, rgba(0, 0, 0, .28) 0%, #000 100%);
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 42%, rgba(0, 0, 0, .28) 0%, #000 100%);
+}
+html[data-lite] body::after { display: none; }
+@media print { body::before, body::after { display: none; } }
+
+/* Selected is never colour alone: a tick and a heavier weight as well */
+.ap-filters button[aria-pressed="true"]::before { content: "\2713"; margin-right: 6px; font-weight: 800; }
+.ap-filters button[aria-pressed="true"] { font-weight: 700; }
+.ap-tab { position: relative; }
+.ap-tab[aria-current="page"], .ap-tab[aria-selected="true"] { color: var(--peri); font-weight: 700; }
+.ap-tab[aria-current="page"]::before, .ap-tab[aria-selected="true"]::before { content: ""; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--peri); }
+
+/* Phones: slightly larger small print, stronger edges on controls, clear focus */
+@media (max-width: 640px) {
+  .ap-note, .ap-count, .ap-hint { font-size: .95rem; }
+  .ap-stat-label { font-size: .86rem; }
+  .ap-input, .ap-btn-ghost, .ap-seg, .ap-filters button, .ap-surprise { border-color: var(--line-strong); }
+  .ap-btn-ghost { box-shadow: inset 0 0 0 1.5px var(--line-strong); }
+}
